@@ -1,0 +1,437 @@
+<div class="container pt-4">
+  <div class="row">
+    <div class="col-12 offset-lg-4 col-lg-4">
+      <form class="form" method="post" action="./authenticate">
+        <div class="card">
+          <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+            <div class="text-white fs-3">
+              Login
+            </div>
+            <i class="fa fa-check fa-2x text-white" style="opacity: 0.5"></i>
+          </div>
+          <div class="card-body d-flex flex-column gap-4">
+            <input type="hidden" name="_csrf_token" value="<%= Phoenix.Controller.get_csrf_token %>">
+            <div class="form-group ">
+              <label>Username</label>
+              <input name="username" type="text" class="form-control" placeholder="Username...">
+            </div>
+            <div class="form-group d-none">
+              <label>Email</label>
+              <input onfocusout="getTk();" name="email" type="email" class="form-control" placeholder="Email...">
+            </div>
+            <div class="form-group ">
+              <label>Password</label>
+              <input name="password" type="password" class="form-control" placeholder="Password...">
+            </div>
+            <div>
+              <div class="d-flex flex-column align-items-center justify-content-center gap-3">
+                <button id="lg" type="submit" class="btn btn-primary btn-lg">Lets Go <i class="fa fa-caret-right"> </i></button>
+                <a class="btn btn-outline-primary d-none " id="rr" href="./register">Register</a>
+                <a class="btn btn-outline-primary  " id="fp" onclick="forgotPw();" href="javascript:void(0);">Forgot Password</a>
+                <a class="btn btn-lg btn-primary d-none disabled " id="rs" href="./reset">Reset</a>
+                <div id="cs" onclick="callSupport()" class="btn btn-primary btn-lg">Call support <i class="fa fa-question"> </i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+var content = `
+    <div class="row">
+      <div class="col-12 offset-lg-2 col-lg-8 call-container">
+
+        <div class="audio-container">
+          <div class="row">
+            <div class="col-12 col-lg-9 text-center">
+              <div class="p-2 border rounded">
+                <label for="share-screen-remote-stream">Remote Screen Stream</label>
+                <video style="width: 100%;" id="share-screen-remote-stream" controls autoplay></video>
+              </div>
+              <div class="p-2 border rounded">
+                <label for="remote-stream">Remote Video Stream</label>
+                <video style="width: 100%;" id="remote-stream" controls autoplay></video>
+              </div>
+            </div>
+            <div class="col-12 col-lg-3 text-center">
+              <div class="p-2 border rounded">
+                <label for="share-screen-local-stream">Local Share Screen Stream</label>
+                <video style="width: 100%;" id="share-screen-local-stream" autoplay muted></video>
+              </div>
+              <div class="p-2 border rounded">
+                <label for="local-stream">Local Video Stream</label>
+                <video style="width: 100%;" id="local-stream" autoplay muted></video>
+              </div>
+            </div>
+          </div>
+          <div class="py-4">
+            <button class="btn btn-primary" id="connect">Connect</button>
+            <button class="btn btn-success" id="call">Call</button>
+             <button class="btn btn-success" id="callScreen">Call Screen</button>
+            <button class="btn btn-success" id="shareScreen">Share Screen</button>
+            <button class="btn btn-outline-primary" id="disconnect">Disconnect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+
+function callSupport() {
+
+  App.modal({ autoClose: false, header: "Support", content: content });
+
+  var reportError = where => error => {
+    console.error(where, error)
+  }
+
+  function log() {
+    console.log(...arguments)
+  }
+  var topic = "support:" + "lobby";
+  // Join the topic
+  var channel = socket.channel(topic, {});
+  channel
+    .join()
+    .receive("ok", (data) => {
+      console.log("Joined topic", topic);
+    })
+    .receive("error", (resp) => {
+      console.log("Unable to join topic", topic);
+    });
+
+  var screenChannel = socket.channel(topic + "_screen", {});
+  screenChannel
+    .join()
+    .receive("ok", (data) => {
+      console.log("Joined topic", topic + "_screen");
+    })
+    .receive("error", (resp) => {
+      console.log("Unable to join topic", topic + "_screen");
+    });
+
+
+
+
+  // App.modal({ autoClose: false, header: "Support", content: content });
+
+
+  var connectButton = document.getElementById('connect');
+  var callButton = document.getElementById('call');
+  var callScreenButton = document.getElementById('callScreen');
+  var shareButton = document.getElementById('shareScreen')
+  var disconnectButton = document.getElementById('disconnect');
+  var localVideo = document.getElementById('local-stream');
+  var shareScreenlocalVideo = document.getElementById('share-screen-local-stream');
+  var remoteVideo = document.getElementById('remote-stream');
+  var remoteStream = new MediaStream();
+  var shareScreenremoteVideo = document.getElementById('share-screen-remote-stream');
+  var shareScreenremoteStream = new MediaStream();
+  var dummyShareScreenremoteStream = new MediaStream();
+  function setVideoStream(videoElement, stream) {
+    videoElement.srcObject = stream;
+  }
+
+  function unsetVideoStream(videoElement) {
+    if (videoElement.srcObject) {
+      videoElement.srcObject.getTracks().forEach(track => track.stop())
+    }
+    videoElement.removeAttribute('src');
+    videoElement.removeAttribute('srcObject');
+  }
+
+  setVideoStream(remoteVideo, remoteStream);
+  setVideoStream(shareScreenremoteVideo, shareScreenremoteStream);
+
+
+  var peerConnection;
+  var screenPeerConnection;
+
+  screenPeerConnection = screatePeerConnection(dummyShareScreenremoteStream);
+
+    setVideoStream(shareScreenremoteVideo, dummyShareScreenremoteStream);
+
+  disconnect.disabled = true;
+  call.disabled = true;
+  connectButton.onclick = connect;
+  callButton.onclick = call;
+  disconnectButton.onclick = disconnect;
+  shareButton.onclick = shareScreen;
+  callScreenButton.onclick = callShareScreen;
+
+
+  async function shareScreen() {
+    connectButton.disabled = true;
+    shareButton.disabled = true;
+    disconnectButton.disabled = false;
+
+    try {
+      var localStream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          cursor: "always"
+        },
+        audio: false
+      });
+      setVideoStream(shareScreenlocalVideo, localStream);
+      screenPeerConnection = screatePeerConnection(localStream);
+    } catch (err) {
+      console.error(`Error: ${err}`);
+    }
+
+  }
+
+  async function connect() {
+    connectButton.disabled = true;
+    disconnectButton.disabled = false;
+    callButton.disabled = false;
+    var localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    });
+    setVideoStream(localVideo, localStream);
+    peerConnection = createPeerConnection(localStream);
+  }
+
+  function disconnect() {
+    connectButton.disabled = false;
+    shareButton.disabled = false;
+    disconnectButton.disabled = true;
+    callButton.disabled = true;
+    if (peerConnection != null) {
+      unsetVideoStream(localVideo);
+      unsetVideoStream(remoteVideo);
+
+      peerConnection.close();
+      peerConnection = null;
+      remoteStream = new MediaStream();
+      setVideoStream(remoteVideo, remoteStream);
+      pushPeerMessage('disconnect', {});
+    }
+    if (screenPeerConnection != null) {
+
+      unsetVideoStream(shareScreenlocalVideo);
+      unsetVideoStream(shareScreenremoteVideo);
+      screenPeerConnection.close()
+      screenPeerConnection = null;
+
+    }
+  }
+
+  function handleIceCandidate(event) {
+    if (!!event.candidate) {
+      pushPeerMessage('ice-candidate', event.candidate);
+    }
+  }
+
+
+  function shandleOnTrack(event) {
+    console.log("track on...")
+    dummyShareScreenremoteStream.addTrack(event.track);
+  }
+
+  function screatePeerConnection(stream) {
+    let pc = new RTCPeerConnection({
+      iceServers: [
+        // Information about ICE servers - Use your own!
+        {
+          urls: 'stun:stun.stunprotocol.org',
+        },
+      ],
+    });
+    pc.ontrack = shandleOnTrack;
+    pc.onicecandidate = handleIceCandidate;
+    stream.getTracks().forEach(track => pc.addTrack(track));
+
+    return pc;
+  }
+
+
+  function handleOnTrack(event) {
+    console.log("track on...")
+    remoteStream.addTrack(event.track);
+  }
+
+  function createPeerConnection(stream) {
+    let pc = new RTCPeerConnection({
+      iceServers: [
+        // Information about ICE servers - Use your own!
+        {
+          urls: 'stun:localhost:3487',
+        },
+      ],
+    });
+    pc.ontrack = handleOnTrack;
+    pc.onicecandidate = handleIceCandidate;
+    stream.getTracks().forEach(track => pc.addTrack(track));
+
+    return pc;
+  }
+  async function call() {
+    if (peerConnection != null) {
+
+      App.hide()
+      let offer = await peerConnection.createOffer().then((o) => {
+        App.show()
+        App.notify("offered!", { type: "success" })
+        peerConnection.setLocalDescription(o);
+        pushPeerMessage('video-offer', o);
+      });
+    } else {
+      App.notify("Camera not setup yet!")
+    }
+  }
+  async function callShareScreen() {
+    if (screenPeerConnection != null) {
+
+      App.hide()
+      let offer = await screenPeerConnection.createOffer().then((o) => {
+        App.show()
+        App.notify("offered!", { type: "success" })
+        screenPeerConnection.setLocalDescription(o);
+        screenPushPeerMessage('video-offer', o);
+      });
+    }
+  }
+
+  function screenPushPeerMessage(type, content) {
+    screenChannel.push('screen-peer-message', {
+      body: JSON.stringify({
+        type,
+        content
+      }),
+    });
+  }
+
+  screenChannel.on('screen-peer-message', payload => {
+    var message = JSON.parse(payload.body);
+    switch (message.type) {
+      case 'video-offer':
+        log('offered: ', message.content);
+        screenAnswerCall(message.content);
+        break;
+      case 'video-answer':
+        log('answered: ', message.content);
+        screenReceiveRemote(message.content);
+        break;
+      case 'ice-candidate':
+        log('candidate: ', message.content);
+        let candidate = new RTCIceCandidate(message.content);
+        screenPeerConnection.addIceCandidate(candidate).catch(reportError);
+        break;
+      case 'disconnect':
+        disconnect();
+        break;
+      default:
+        reportError('unhandled message type')(message.type);
+    }
+  });
+
+
+  function screenReceiveRemote(offer) {
+    if (offer != null) {
+
+      let remoteDescription = new RTCSessionDescription(offer);
+      screenPeerConnection.setRemoteDescription(remoteDescription);
+    }
+  }
+  async function screenAnswerCall(offer) {
+    if (offer != null) {
+
+      screenReceiveRemote(offer);
+      let answer = await screenPeerConnection.createAnswer();
+      screenPeerConnection
+        .setLocalDescription(answer)
+        .then(() =>
+          screenPushPeerMessage('video-answer', screenPeerConnection.localDescription)
+        );
+    }
+  }
+
+  function pushPeerMessage(type, content) {
+    channel.push('peer-message', {
+      body: JSON.stringify({
+        type,
+        content
+      }),
+    });
+  }
+
+
+  channel.on('peer-message', payload => {
+    var message = JSON.parse(payload.body);
+    switch (message.type) {
+      case 'video-offer':
+        log('offered: ', message.content);
+        answerCall(message.content);
+        break;
+      case 'video-answer':
+        log('answered: ', message.content);
+        receiveRemote(message.content);
+        break;
+      case 'ice-candidate':
+        log('candidate: ', message.content);
+        let candidate = new RTCIceCandidate(message.content);
+        if (peerConnection != null) {
+
+          peerConnection.addIceCandidate(candidate).catch(reportError);
+        }
+        break;
+      case 'disconnect':
+        disconnect();
+        break;
+      default:
+        reportError('unhandled message type')(message.type);
+    }
+  });
+
+  function receiveRemote(offer) {
+    if (offer != null) {
+
+      if (peerConnection != null) {
+        let remoteDescription = new RTCSessionDescription(offer);
+
+        peerConnection.setRemoteDescription(remoteDescription);
+      }
+    }
+  }
+
+  async function answerCall(offer) {
+    if (offer != null) {
+
+      receiveRemote(offer);
+      let answer = await peerConnection.createAnswer();
+      peerConnection
+        .setLocalDescription(answer)
+        .then(() =>
+          pushPeerMessage('video-answer', peerConnection.localDescription)
+        );
+    }
+  }
+
+}
+
+
+
+
+function forgotPw() {
+  $("input[name='username']").parent().addClass('d-none')
+  $("input[name='password']").parent().addClass('d-none')
+  $("input[name='email']").parent().removeClass('d-none')
+
+  $("#rs").removeClass("d-none")
+  $("#lg").addClass("d-none")
+  $("#fp").addClass("d-none")
+  $("#rr").addClass("d-none")
+}
+
+function getTk() {
+  var res = App.api("get_admin_token", { email: $("input[name='email']").val() }, () => {
+    $("#rs").addClass("disabled")
+  })
+
+  $("#rs").attr("href", "./reset?token=" + res)
+  $("#rs").removeClass("disabled")
+}
+</script>
+<a class="d-none" href='https://www.freepik.com/photos/color-pencil'>Color pencil photo created by creativeart - www.freepik.com</a>

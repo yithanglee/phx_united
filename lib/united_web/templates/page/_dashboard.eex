@@ -1,0 +1,586 @@
+<div class="container">
+  <div class="contents py-4">
+    <div class="px-2 col-6 text-left">
+      <div class="card">
+        <div class="card-body">
+          <p class="lead">Things to do:</p>
+          <ul>
+            <li>Connect With Facebook
+              <ul>
+                <%= if @conn.private.plug_session["current_user"] != nil do %>
+                <%= with true <- :fb_user_id in Map.keys(@conn.private.plug_session["current_user"]), 
+                               true <-  @conn.private.plug_session["current_user"].fb_user_id != nil do %>
+                <li>FB User ID: <small class="text-secondary">
+                    <%= @conn.private.plug_session["current_user"].fb_user_id%></small> <a class=" btn btn-primary btn-sm" href="/fb_relogin">ReConnect</a></li>
+                <% else 
+                                 _ -> %>
+                <li> <a class=" btn btn-primary btn-sm" href="/fb_login">Connect</a></li>
+                <% end %>
+                <% end %>
+              </ul>
+            </li>
+            <li>
+              Get Facebook Pages <small>Current user's managed Facebook pages.</small>
+              <div class="btn btn-sm btn-success" onclick="get_pages()">Query</div>
+              <ul id="fb_pages">
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="px-2 col-6 text-left">
+      <div class="card">
+        <div class="card-body" id="current_live">
+        </div>
+        <div class="card-body">
+          <p class="lead">Live Video:</p>
+          <ul>
+            <li>Comments
+              <div id="tab1">
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="px-2 col-6 text-left">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <p class="lead">Processed Orders:</p>
+            <div class="">
+              <div class="btn btn-sm btn-primary">Checkout All</div>
+              <div class="btn btn-sm btn-warning">Show Pick List</div>
+            </div>
+          </div>
+          <ul>
+            <li>Orders
+              <div id="tab2">
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="row">
+    <div class=" col-12 text-left">
+      <div class="card">
+        <div class="card-body">
+          <div class="col-12" id="content">
+          </div>
+          <div id="subcontent" style="display: none;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+<% 
+      id = 
+        if @conn.private.plug_session["current_user"] != nil do 
+            Phoenix.Token.sign(UnitedWeb.Endpoint, "anchor user", @conn.private.plug_session["current_user"].id )
+        else 
+            "null"
+        end 
+
+    %>
+window.userId = '<%= @conn.private.plug_session["current_user"].id %>'
+window.userToken = '<%= id %>'
+var socket = new Phoenix.Socket("/socket", {
+  params: { token: window.userToken }
+});
+socket.connect();
+
+var topic = "user:lobby";
+
+var channel = socket.channel(topic, {});
+channel
+  .join()
+  .receive("ok", (data) => {
+    console.log("Joined topic", topic);
+  })
+  .receive("error", (resp) => {
+    console.log("Unable to join topic", topic);
+  });
+
+    var page_topic = "facebook_page:lobby" ;
+    var page_channel = socket.channel(page_topic, {});
+    page_channel
+      .join()
+      .receive("ok", (data) => {
+        console.log("Joined topic", page_topic);
+      })
+      .receive("error", (resp) => {
+        console.log("Unable to join topic", page_topic);
+      });
+
+
+
+$('.contents').slick({
+  arrows: false,
+  dots: true,
+  variableWidth: false,
+  infinite: true,
+  speed: 300,
+  slidesToShow: 2,
+  slidesToScroll: 2,
+  responsive: [{
+    breakpoint: 370,
+    settings: {
+      slidesToShow: 1,
+      slidesToScroll: 1,
+    }
+  }]
+});
+
+var pages = [];
+
+function get_pages() {
+  App.loading();
+  pages = App.api("get_pages", { id: "<%= @conn.private.plug_session["current_user"].fb_user_id %>" });
+  $("#fb_pages").html('')
+  pages.forEach((v, i) => {
+
+    $("#fb_pages").append(`<li>
+        <div class="d-flex justify-content-between align-items-center">
+          <div ><span>
+        ` + v.name + ` </span><br><span class="badge bg-primary">` + v.page_id + `</span>
+          </div>
+          <div >
+            <div class="btn btn-sm btn-primary" onclick="get_videos('` + v.page_access_token + `', '` + v.page_id + `', '`+v.id+`')">Check LiveVideos</div>
+          </div>
+        </div>
+            
+             <ul page_id="` + v.page_id + `" class="py-4 fb_videos2">
+              </ul>
+
+        </li>
+
+
+
+        `)
+  })
+  App.loading();
+
+}
+
+function get_videos(pat, page_id, fb_page_id) {
+  $("#current_live").html(`
+     <div page_id="` + page_id + `" class="pt-4  d-flex w-100 fb_videos"></div>
+    `)
+  App.loading();
+  var res = App.api("get_videos", { pat: pat });
+
+    page_channel.leave();
+     page_topic = "facebook_page:" + fb_page_id ;
+     page_channel = socket.channel(page_topic, {token: "some_token"});
+    page_channel
+      .join()
+      .receive("ok", (data) => {
+        console.log("Joined topic", page_topic);
+      })
+      .receive("error", (resp) => {
+        console.log("Unable to join topic", page_topic);
+      });
+     
+
+
+  if (res.live != null) {
+
+    // $(".fb_videos[page_id='" + page_id + "']").html(res.live.embed_html)
+    $(".fb_videos[page_id='" + page_id + "']").html(`
+
+      <table class="table" id="live_now" style="width: 100%;">
+        <thead><tr>
+          <th>No</th>
+          <th>Name</th>
+          <th>Message</th>
+          <th>Action</th>
+        </tr></thead>
+        <tbody>
+
+        </tbody>
+      </table>
+
+      `);
+    var live_now = $("table#live_now").DataTable({ order: [[0, "desc"]]});
+      page_channel.on("new_msg", payload => {
+        live_now.row.add([payload.id, payload.name, payload.message, ""]).draw() 
+      })
+
+     
+  }
+  $(".fb_videos2").html('')
+  $(".fb_videos2[page_id='" + page_id + "']").html('')
+  res.all.forEach((v, i) => {
+    $(".fb_videos2[page_id='" + page_id + "']").append(`
+
+    <li>
+
+      <div class="row my-4 d-flex justify-content-between">
+        <div class="col-8">
+            ` + v.title + ` <br><small class="text-secondary">` + v.live_id + `</small>
+        </div>
+        <div class="col-4">
+            <div class="btn btn-sm btn-outline-primary" onclick="check_video_comment('` + v.id + `', '` + v.live_id + `')">Check Comments</div>
+            <div class="btn btn-sm btn-outline-warning" onclick="process_video_comment('` + v.live_id + `')">Process into Orders</div>
+        </div>
+      </div>
+
+
+  </li>`)
+  })
+  App.loading();
+}
+var random_id = makeid(4);
+
+function repopulate_comments(live_id, fb_live_id) {
+  App.show();
+  App.api("repopulate_comments", { live_video_id: live_id })
+  check_video_comment(live_id, fb_live_id)
+  // process_video_comment(fb_live_id)
+}
+
+function finalize_order(live_id, page_visitor_id) {
+  console.log({ live_id: live_id, page_visitor_id: page_visitor_id })
+  var res =
+    window.current_orders.filter((order, i) => {
+      return order.page_visitor.id == page_visitor_id
+    })
+
+  console.log(res)
+
+  if (res.length > 0) {
+
+    // App.api("finalize_order", {live_id: live_id, order: res[0]})
+
+    $.ajax({
+      url: "/api/webhook",
+      method: "POST",
+      data: { scope: "finalize_order", live_id: live_id, order: res[0] }
+    }).done(() => {
+      App.notify("Finalized!", { type: "info" })
+    })
+
+
+
+  }
+}
+
+function process_video_comment(live_id) {
+  $("div#tab2").html('')
+  var res =
+    App.api("process_into_order", { live_id: live_id })
+
+  window.current_orders = []
+
+  res.forEach((data, i) => {
+
+    var pv = data.page_visitor
+    var items = data.order
+    var order = { page_visitor: pv, items: [] }
+    var trs = []
+
+    items.forEach((item, ii) => {
+      order.items.push(item)
+      trs.push(`<tr valign="middle">
+
+          <td>` + item.item_name + `<br><small class="text-secondary">` + item.item_code + `</small></td>
+          <td>` + item.qty + `</td>
+          <td class="text-end format_float">` + item.price + `</td>
+
+          </tr>`)
+    })
+    current_orders.push(order)
+
+    $("div#tab2").append(`
+
+        <div class="card my-4">
+          <div class="card-header">` + pv.name + ` </div>
+          <div class="card-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th class="text-end">SubTotal (RM)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ` + trs.join("") + `
+              </tbody>
+
+            </table>
+            <div class="d-flex justify-content-end">
+            <div class="btn btn-sm btn-success" onclick="finalize_order('` + live_id + `','` + pv.id + `')">Finalize Order</div>
+            </div>
+          </div>
+        </div>
+
+        `)
+
+
+  })
+  formatDate();
+
+
+}
+
+function check_video_comment(live_id, fb_live_id) {
+
+
+  $("div#tab1").html('')
+  console.log(live_id)
+  var comments = new phoenixModel({
+    data: { pageLength: 10, preloads: ["page_visitor"], "live_video_id": live_id },
+    moduleName: "VideoComment",
+    link: "VideoComment",
+    tableSelector: "#" + random_id,
+    columns: [{
+      data: "id",
+      label: "id"
+    }, {
+      data: "page_visitor_id",
+      label: "name",
+      "showChild": true,
+      "xdata": { child: "page_visitor", data: "name" }
+    }, {
+      data: "message",
+      label: "Message"
+    }, {
+      data: "id",
+      label: "Action"
+    }],
+    customCols: [
+
+      'id',
+    ],
+    buttons: [{
+      buttonType: "grouped",
+      name: "Manage",
+      color: "outline-warning",
+      buttonList: [{
+          name: "Edit",
+          iconName: "fa fa-edit",
+          color: "btn-sm btn-outline-warning",
+          onClickFunction: editData,
+          fnParams: {
+            drawFn: enlargeModal,
+            customCols: [{
+              name: 'General',
+              list: ['id', 'message']
+            }]
+          }
+        },
+
+        {
+          name: "Delete",
+          iconName: "fa fa-trash",
+          color: "outline-danger",
+          onClickFunction: deleteData,
+          fnParams: {}
+        }
+      ],
+      fnParams: {
+
+      }
+    }, ]
+  })
+  App.Page.createTable(random_id, "#tab1")
+  populateTable(comments)
+
+
+
+  comments.table.on("draw", function() {
+
+    if ($("button[data-module='repopulate_comment']").length == 0) {
+
+      $(comments.tableSelector).closest(".table-responsive").find(".module_buttons").append(`<button type="submit" onclick="repopulate_comments('` + live_id + `', '` + fb_live_id + `')" class="btn btn-fill btn-success" data-href="" data-module="repopulate_comment" data-ref="">
+                  <i class="fa fa-edit"></i> Capture Comments</button>`)
+    }
+
+    App.hide();
+    process_video_comment(fb_live_id)
+    $('.contents').slick('slickGoTo', 2);
+  })
+}
+
+
+var list = [{
+  icon: "list",
+  title: "Blogs",
+  active: true,
+  content: `<div id="tabs1"></div>`,
+}, {
+  icon: "collections",
+  title: "Images",
+  active: true,
+  content: `<div id="tabs2"></div>`,
+}, {
+  icon: "storefront",
+  title: "Shops",
+  active: true,
+  content: `<div id="tab3"></div>`,
+}, {
+  icon: "local_offer",
+  title: "Tags",
+  active: true,
+  content: `<div id="tab4"></div>`,
+}, {
+  icon: "category",
+  title: "Products",
+  active: true,
+  content: `<div id="tab5"></div>`,
+}, {
+  icon: "list",
+  title: "FbPages",
+  active: true,
+  content: `<div id="tab6"></div>`,
+}]
+var random_id = makeid(4);
+var blogs = new phoenixModel({
+  moduleName: "Blog",
+  link: "Blog",
+  tableSelector: "#" + random_id,
+  columns: [{
+    data: "id",
+    label: "id"
+  }, {
+    data: "author",
+    label: "Author"
+  }, {
+    data: "title",
+    label: "Title"
+  }, {
+    data: "id",
+    label: "Action"
+  }],
+  customCols: [
+    'title',
+    'author', {
+      label: 'body',
+      editor: true
+    },
+    'excerpt',
+    'id',
+  ],
+  buttons: [{
+    buttonType: "grouped",
+    name: "Manage",
+    color: "outline-warning",
+    buttonList: [{
+        name: "Edit",
+        iconName: "fa fa-edit",
+        color: "btn-sm btn-outline-warning",
+        onClickFunction: editData,
+        fnParams: {
+          drawFn: enlargeModal,
+          customCols: [{
+            name: 'General',
+            list: ['id', 'title', 'author', 'excerpt']
+          }, {
+            name: 'Others',
+            list: [
+              { label: 'featured_image', alias: true },
+              {
+                editor: true,
+                label: 'body'
+              }
+            ]
+          }]
+        }
+      },
+
+      {
+        name: "Delete",
+        iconName: "fa fa-trash",
+        color: "outline-danger",
+        onClickFunction: deleteData,
+        fnParams: {}
+      }
+    ],
+    fnParams: {}
+  }, ]
+})
+App.Page.tablist("#content", list)
+App.Page.createTable(random_id, "#tabs1")
+populateTable(blogs)
+
+var random_id = makeid(4);
+var medias = new phoenixModel({
+  moduleName: "StoredMedia",
+  link: "StoredMedia",
+  tableSelector: "#" + random_id,
+  columns: [{
+    data: "id",
+    label: "id"
+  }, {
+    data: "name",
+    label: "File Name"
+  }, {
+    data: "s3_url",
+    label: "Url"
+  }, {
+    data: "id",
+    label: "Action"
+  }],
+  customCols: [
+    'name',
+    { label: 's3_url', upload: true },
+
+    'id',
+  ],
+  buttons: [{
+    buttonType: "grouped",
+    name: "Manage",
+    color: "outline-warning",
+    buttonList: [{
+        name: "Edit",
+        iconName: "fa fa-edit",
+        color: "btn-sm btn-outline-warning",
+        onClickFunction: editData,
+        fnParams: {
+
+          customCols: [{
+            name: 'General',
+            list: ['id', 'name']
+          }, {
+            name: 'Others',
+            list: ['f_size', 'f_extension', 's3_url']
+          }]
+        }
+      },
+
+      {
+        name: "Delete",
+        iconName: "fa fa-trash",
+        color: "outline-danger",
+        onClickFunction: deleteData,
+        fnParams: {}
+      }
+    ],
+    fnParams: {}
+  }, ]
+})
+
+App.Page.createTable(random_id, "#tabs2")
+populateTable(medias)
+
+var xcard = `
+        <div class=" ">
+            <div x-html="data.name"></div>
+            <img x-bind:src="data.s3_url" class="w-100 h-100">
+        </div>
+
+    `
+populateGridView(medias, xcard)
+</script>
+<script type="text/javascript" src="/js/shops.js"></script>
+<script type="text/javascript" src="/js/tags.js"></script>
+<script type="text/javascript" src="/js/products.js"></script>
+<script type="text/javascript" src="/js/fb_pages.js"></script>

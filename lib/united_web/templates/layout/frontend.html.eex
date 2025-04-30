@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title></title>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/bootstrap_cosmo.min.css") %>"/>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/all.css") %>"/>
+    <script  type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <script  type="text/javascript" src="/js/jquery.min.js"></script>
+    <script  type="text/javascript" src="/js/bootstrap.notify.js"></script>
+    <script  type="text/javascript" src="/js/sha.js"></script>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/datatables.min.css") %>"/>
+    <script  type="text/javascript" src="/js/datatables.min.js"></script>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
+    <script  type="text/javascript" src="/js/app.js"></script>
+    <script  type="text/javascript" src="/js/qrcode.min.js"></script>
+    <!--
+      <link rel="stylesheet" href="/vendor/chartist/chartist.css"/>
+      <script  type="text/javascript" src="/vendor/chartist/chartist.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="/vendor/slick/slick.css" />
+      <link rel="stylesheet" type="text/css" href="/vendor/slick/slick-theme.css" />
+      <script type="text/javascript" src="/vendor/slick/slick.js"></script>
+    -->
+    <script src="/js/swipe-listener.min.js"></script>
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="/js/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="/js/firebase-auth.js"></script>
+    <script src="/vendor/firebase-ui/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="/vendor/firebase-ui/firebase-ui-auth.css" />
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TP9MVHK');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CHT7YMG7KE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-CHT7YMG7KE');
+    </script>
+  <%= render("ecom_header.html", conn: @conn) %>
+  </head>
+  <body style="overflow-x: hidden;" id="swiper-container"> 
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TP9MVHK"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+    <% render("frontend_nav.html", conn: @conn) %>
+    <div class="container-fluid gx-0">
+      <%= @inner_content %>
+      <footer class="bg-dark text-white p-4 d-flex flex-column justify-content-between" style="opacity:  0.85; min-height: 20vh;">
+        <div class="row gx-0">
+          <div class="col-12 col-lg-6">
+            <div class="fs-4" style="cursor:pointer;">
+             
+            </div>
+      
+          </div>
+          <div class="col-6 col-lg-3 p-4 p-lg-0 ">
+            Opening Hours
+            <div class="text-muted">
+          
+            </div>
+          </div>
+          <div class="col-6 col-lg-3 p-4 p-lg-0 ">
+            Address
+            <div class="text-muted">
+           
+            </div>
+          </div>
+        </div>
+        <div class="text-center text-muted mt-4">
+        
+        </div>
+      </footer>
+      <div style="bottom: 2vh;right: 6vw;"  class="toTop btn btn-success position-fixed btn-sm rounded">
+        <i class="fa fa-2x fa-caret-up"></i>
+      </div>
+    </div>
+    <script type="text/javascript">
+    $(document).ready(function(){
+    <%= cond do %>
+    <% get_flash(@conn, :info) != nil -> %>
+    App.notify("<%= get_flash(@conn, :info) %>", {type: 'success'});
+    <% get_flash(@conn, :error) != nil -> %>
+    App.notify("<%= get_flash(@conn, :error) %>", {type: 'danger'});
+    <% true -> %>
+    <% end %>
+    })
+    $(".toTop").click(() => {
+      $("div[aria-label='mainbar']")[0].scrollIntoView();
+    })
+
+    $("#swiper-container").on("click", () => {
+      console.log("click")
+    })
+    var container = document.querySelector('#swiper-container');
+    var listener = SwipeListener(container);
+    container.addEventListener('swipe', function (e) {
+      console.log(e.detail);
+      if (e.detail.directions.left) {
+        toggleSidebar()
+      }
+      if (e.detail.directions.right) {
+        toggleSidebar()
+      }
+    });
+
+    // console.log = function() {}
+  $(document).on("click", "a.navi", function(event) {
+    event.preventDefault();
+    navigateTo($(this).attr("href"))
+  });
+
+
+    </script>
+  <div class="modal" id="mySubModal">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Modal title</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Modal body text goes here.</p>
+        </div>
+        <div class="modal-footer">
+        </div>
+      </div>
+    </div>
+  </div>
+    <div class="modal" id="myModal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal title</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Modal body text goes here.</p>
+          </div>
+          <div class="modal-footer">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wrapper-ring">
+      <div class="lds-ripple">
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+  </body>
+</html>

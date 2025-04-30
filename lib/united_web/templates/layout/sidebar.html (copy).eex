@@ -1,0 +1,101 @@
+<style type="text/css">
+#profile_card {
+  background: url('/images/bg.jpg') no-repeat;
+  background-size: cover;
+  color: white;
+  background-blend-mode: multiply;
+  background-color: #0000008a;
+  background-attachment: fixed;
+}
+.ark .list-group-item {
+  position: relative;
+  display: block;
+  padding: .5rem 1rem;
+  color: white;
+  text-decoration: none;
+  background-color: #fff0;
+  border: 0px;
+}
+</style>
+<div class="ps-3 d-none d-lg-flex flex-column justify-content-center align-items-start" style="height: 10vh;">
+  <span class="fs-2">Ark Library</span>
+</div>
+<div class="ark list-group d-lg-block d-none rounded">
+  <a href="/admin/dashboard"  class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-tachometer-alt"></i>
+    </span>
+    <span class="ps-2"> Dashboard</span>
+  </a>
+
+  <a href="/admin/loans"  class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-history"></i>
+    </span>
+    <span class="ps-2"> Loans</span>
+  </a>
+  <a href="/admin/books"  class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-book"></i>
+    </span>
+    <span class="ps-2"> Books</span>
+  </a>
+
+  <a href="/admin/members"  class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-users"></i>
+    </span>
+    <span class="ps-2"> Members</span>
+  </a>
+
+  <a href="/admin/uploads"  class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-file-upload"></i>
+    </span>
+    <span class="ps-2"> Upload</span>
+  </a>
+  
+  <a href="/admin/scan" class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-camera"></i>
+    </span>
+    <span class="ps-2"> Scan</span>
+  </a>
+    
+  <a href="javascript:void(0);" onclick="checkInMember()" class="list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-qrcode"></i>
+    </span>
+    <span class="ps-2"> Check In Member</span>
+  </a>
+    
+  <a href="javascript:void(0);" onclick="checkOutMember()" class="list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-qrcode"></i>
+    </span>
+    <span class="ps-2"> Check Out Member</span>
+  </a>
+  <a href="#" class="list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-wrench"></i>
+    </span>
+    <span class="ps-2"> Settings</span>
+  </a>
+  <a href="/admin/logout" class="list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-sign-out-alt"></i>
+    </span>
+    <span class="ps-2"> Logout</span>
+  </a>
+
+  
+  <a href="/admin/support" class="navi list-group-item list-group-item-action">
+    <span class="badge bg-primary rounded-pill">
+      <i class="fa fa-sm fa-info"></i>
+    </span>
+    <span class="ps-2"> Support</span>
+  </a>
+    
+
+
+</div>

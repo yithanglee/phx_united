@@ -1,0 +1,47 @@
+<%
+port = Application.get_env(:united, UnitedWeb.Endpoint) |> Enum.into(%{}) |> Map.get(:http) |> Enum.into(%{}) |> Map.get(:port)
+host = Application.get_env(:united, UnitedWeb.Endpoint)[:url] |> Enum.into(%{}) |> Map.get(:host)
+
+host = 
+if host == "localhost" do
+  "http://localhost:#{port}"
+  else 
+  "https://#{host}"  
+end
+
+%>
+<style type="text/css">
+#info {
+  font-size: smaller;
+}
+</style>
+<div style="">
+	
+<h4>Hi
+  <%= @member.name %>,</h4>
+<p>You have book loans to return, kindly drop by the library to return the book.
+</p>
+<ol>
+  <%= for {book, return_date} <- @books do %>
+  <li>
+    <%= book.title %> (return by: <%= return_date%>)
+  </li>
+  <% end %>
+</ol>
+<p style="padding-top: 20px;">
+
+  Regards,<br>
+  <strong><%= @organization.name %></strong><br>
+<div style="">
+  	<img src="<%= host %><%= @organization.img_url %>" style="height: 180px;padding: 24px;background-color: white;">
+  </div>
+  <div id="info">
+    Opening Hours<br>
+
+   <%= @organization.opening_hours |> raw() %>
+    <br><br>
+    Address<br>
+   <%= @organization.address %>
+  </div>
+</p>
+</div>

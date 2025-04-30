@@ -1,0 +1,39 @@
+<div id="content">
+</div>
+<script type="text/javascript">
+function listLoans() {
+  console.log("loan is working")
+  // call the page html
+  // loads its js there.
+  content = App.html('loans.html')
+  $("#content").html(content)
+}
+
+function listBooks() {
+  console.log("book is working")
+  // call the page html
+  // loads its js there.
+  content = App.html('books.html')
+  $("#content").html(content)
+}
+
+
+
+function searchAll() {
+    content = App.html('search.html')
+  $("#content").html(content)
+}
+
+function dashboardInit() {
+  console.log("init is working")
+  content = App.html('member_dashboard.html')
+  $("#content").html(content)
+}
+
+function editProfile() {
+  content = App.html('member_profile.html')
+  $("#content").html(content)
+}
+
+window.init = dashboardInit();
+</script>

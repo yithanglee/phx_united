@@ -1,0 +1,37 @@
+<h3>Hi there
+  <%= @visitor.name %>
+</h3>
+Your order has been shipped! (
+<%= @cart.shipping_ref %>), here's the ordered items.
+<ol>
+  <%
+		items = @cart.json_items |> Poison.decode!
+		IO.inspect(items)
+		%>
+  <%= for item <- items do %>
+  <li>
+    <%= item["name"] %>
+  </li>
+  <% end	%>
+</ol>
+<br>
+Shipped to:
+<%= @cart.name %><br>
+<%= @cart.phone_no %><br>
+<%= @cart.line1 %>
+<%= @cart.line2 %><br>
+<%= @cart.town %>
+<%= @cart.postcode %>
+<%= @cart.state %> <br>
+<br> <br> <br> <br>
+<div class="col-md-4 col-md-offset-1">
+  <img style="height: 56px;" class="footer-logo" src="https://organiclovenewlife.com/img/olr.png" alt="">
+  <div class="footer-address"><a target="_blank" href="https://goo.gl/maps/wLqBYcjzZHsLSEAW8"><b>
+        29, Jalan BPP 8/1, Pusat Bandar Putra Permai, 43300 Seri Kembangan, Selangor, Malaysia</b></a>
+    <br> Phone: +6 03-8959 6641
+    <br> Email: <a href="mailto:organiclove.sk@gmail.com">organiclove.sk@gmail.com </a>
+    <br> <a href="https://www.facebook.com/organicloveresources"><img style="height: 20px;margin-right: 8px;margin-top: 6px;margin-left: 8px;" src="https://organiclovenewlife.com/img/facebook.png"><b>Facebook</b></a>
+  </div>
+  <div class="footer-description"> <b>Monday-Saturday:</b> 10.00 a.m. - 7.00 p.m.<br> <b>Sunday:</b> Closed </div>
+  <div class="clear"></div>
+</div>

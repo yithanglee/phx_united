@@ -1,0 +1,292 @@
+<script src="/js/quagga.min.js"></script>
+<script src="/js/scan-barcode.js"></script>
+<script src="/js/qr-scanner.umd.min.js"></script>
+<script type="text/javascript">
+QrScanner.WORKER_PATH = '/js/qr-scanner-worker.min.js';
+</script>
+<script src="/js/peerjs.min.js"></script>
+<div id="sound"></div>
+<!-- start: page toolbar -->
+<div class="page-toolbar px-xl-4 px-sm-2 px-0 py-3">
+  <div class="container-fluid">
+    <div class="row g-3 mb-3 align-items-center">
+      <div class="col">
+        <ol class="breadcrumb bg-transparent mb-0">
+          <li class="breadcrumb-item"><a class="text-secondary navi" href="/admin/dashboard">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page"></li>
+        </ol>
+      </div>
+    </div> <!-- .row end -->
+  </div>
+</div>
+<div id="content" class="px-4" style="min-height: 80vh; margin-top: 0vh;">
+</div>
+<script type="text/javascript">
+var scanner;
+var qr_result;
+
+function startQr(for_loan) {
+  setInterval(checkCamera, 1000)
+  QrScanner.hasCamera().then((x) => {
+    console.log(x);
+    if (x) {
+      App.notify("You have camera!", { placement: { from: "bottom", align: "center" }, type: "success" })
+    }
+  })
+  var qrScanner = new QrScanner($("video")[0], result => {
+    if (result != qr_result) {
+      qr_result = result
+    }
+    // search_barcode(qr_result)
+    App.notify("Found " + qr_result, { type: "success", placement: { align: "center", from: "bottom" } })
+    if (for_loan == "true") {
+      $("input[name='barcode']").val(qr_result)
+      search_barcode()
+    } else {
+
+      searchAndReturn(qr_result);
+    }
+
+    console.log(qr_result)
+    scanner.stop();
+    $("#mySubModal").modal("hide");
+    // $("input[name='member_code']").val(window.member.code)
+    // search_member()
+    var mp3Source = '<source src="/images/beep.mp3" type="audio/mpeg">';
+    var embedSource = '<embed hidden="true" autostart="true" loop="false" src="/images/beep.mp3">';
+    document.getElementById("sound").innerHTML = '<audio autoplay="autoplay">' + mp3Source + embedSource +
+      '</audio>';
+    setTimeout(() => {
+      $("#sound").html('')
+    }, 1000)
+  });
+  scanner = qrScanner;
+  qrScanner.start();
+}
+
+function checkCamera() {
+
+  // console.log("checking sub moda")
+  var t = $("#mySubModal")[0]
+  $("#mySubModal").hasClass("show")
+  if ($("#mySubModal").hasClass("show") == false) {
+    // console.log("cant find the submodal")
+    scanner.stop();
+  }
+}
+
+function checkOutMember() {
+  // open scanner 
+  App.modal({ autoClose: false, selector: "#mySubModal", header: `Check Out`, footer: `<button class="btn btn-primary" onclick='  scanner.stop(); $("#mySubModal").modal("hide")'>Close</button>`, content: `<video style="height: 50vh;width: 100%;"></video>` })
+
+  setInterval(checkCamera, 1000)
+  QrScanner.hasCamera().then((x) => {
+    console.log(x);
+    if (x) {
+      App.notify("You have camera!", { placement: { from: "bottom", align: "center" }, type: "success" })
+    }
+  })
+  var qrScanner = new QrScanner($("video")[0], result => {
+    if (result != qr_result) {
+      qr_result = result
+      App.notify("Found " + qr_result + ", member is checked out!", { type: "success", placement: { align: "center", from: "bottom" } })
+
+      console.log(qr_result)
+      App.api("check_out_member", { code: qr_result })
+
+      var mp3Source = '<source src="/images/beep.mp3" type="audio/mpeg">';
+      var embedSource = '<embed hidden="true" autostart="true" loop="false" src="/images/beep.mp3">';
+      document.getElementById("sound").innerHTML = '<audio autoplay="autoplay">' + mp3Source + embedSource +
+        '</audio>';
+      setTimeout(() => {
+        $("#sound").html('')
+        $("#mySubModal").modal('hide')
+      }, 1000)
+    }
+    // search_barcode(qr_result)
+  });
+  scanner = qrScanner;
+  qrScanner.start();
+
+}
+
+function checkInMember() {
+  // open scanner 
+  App.modal({ autoClose: false, selector: "#mySubModal", header: `Check In`, footer: `<button class="btn btn-primary" onclick='  scanner.stop(); $("#mySubModal").modal("hide")'>Close</button>`, content: `<video style="height: 50vh;width: 100%;"></video>` })
+
+  setInterval(checkCamera, 1000)
+  QrScanner.hasCamera().then((x) => {
+    console.log(x);
+    if (x) {
+      App.notify("You have camera!", { placement: { from: "bottom", align: "center" }, type: "success" })
+    }
+  })
+  var qrScanner = new QrScanner($("video")[0], result => {
+    if (result != qr_result) {
+      qr_result = result
+      App.notify("Found " + qr_result + ", member is checked in!", { type: "success", placement: { align: "center", from: "bottom" } })
+
+      console.log(qr_result)
+      App.api("check_in_member", { code: qr_result })
+
+      var mp3Source = '<source src="/images/beep.mp3" type="audio/mpeg">';
+      var embedSource = '<embed hidden="true" autostart="true" loop="false" src="/images/beep.mp3">';
+      document.getElementById("sound").innerHTML = '<audio autoplay="autoplay">' + mp3Source + embedSource +
+        '</audio>';
+      setTimeout(() => {
+        $("#sound").html('')
+        $("#mySubModal").modal('hide')
+      }, 1000)
+    }
+    // search_barcode(qr_result)
+  });
+  scanner = qrScanner;
+  qrScanner.start();
+
+}
+
+
+function navigateTo(route, additionalParamString) {
+  if (route == null) {
+    route = window.location.pathname
+  }
+  var current_pattern = route.split("/").filter((v, i) => {
+    return v != "";
+  })
+  console.log(current_pattern)
+
+  var match_1 = route_names.filter((rroute, i) => {
+    var z = rroute.route.split("/").filter((v, i) => {
+      return v != "";
+    })
+    console.log(z[z.length - 1])
+
+    if (z[z.length - 1].includes(":")) {
+      return z.length == current_pattern.length
+    } else {
+
+      return z.length == current_pattern.length && z[z.length - 1] == current_pattern[z.length - 1];
+    }
+  })
+
+  var match_2 =
+    match_1.filter((rroute, i) => {
+      console.log(rroute)
+      var z = rroute.route.split("/").filter((v, i) => {
+        return v != "";
+      })
+      return z[0] == current_pattern[0]
+    })
+
+  if (match_2.length > 0) {
+
+    var params = {}
+    match_2.forEach((rroute, i) => {
+      var z = rroute.route.split("/").forEach((v, ii) => {
+        if (v.includes(":")) {
+          params[v.replace(":", "")] = current_pattern[ii - 1]
+        }
+      })
+    })
+    console.log("params here")
+    console.log(params)
+    window.pageParams = params
+    var xParamString = ""
+    if (additionalParamString == null) {
+      xParamString = ""
+    } else {
+      xParamString = additionalParamString
+    }
+
+    if (window.back) {
+      window.back = false
+    } else {
+      var stateObj = { fn: `navigateTo('` + route + `', '` + xParamString + `')`, params: params };
+      console.log("route")
+      console.log(route)
+      window.stateObj = stateObj
+      window.matchTitle = match_2[0].title
+      window.matchRoute = route
+
+
+      if (Object.keys(params).includes("title")) {
+        $("title").html(params.title)
+        $("[aria-current='page']").html(params.title.replace("- Ark Library", ""))
+        history.pushState(stateObj, params.title, route);
+      } else {
+        $("title").html(match_2[0].title)
+
+        $("[aria-current='page']").html(match_2[0].title.replace("- Ark Library", ""))
+        history.pushState(stateObj, match_2[0].title, route);
+      }
+    }
+    var html = App.html(match_2[0].html)
+    var keys = Object.keys(match_2[0])
+    if (keys.includes("skipNav")) {
+      $("#content").html(html)
+
+    } else {
+      var nav = App.html("nav.html")
+
+      if (keys.includes("customNav")) {
+        var nav = App.html(match_2[0].customNav)
+      }
+
+      $("#content").html(nav)
+      $("#content").append(html)
+    }
+    if (
+      $(".sidebar").hasClass("open")) {
+      $(".menu-toggle").click()
+    }
+    return match_2[0]
+  } else {
+    var html = App.html("dashboard.html")
+    // var nav = App.html("blog_nav.html")
+    // $("#subcontent").html(nav)
+    $("#content").html(html)
+
+  }
+
+}
+
+function updatePageParams(obj) {
+  window.stateObj = obj
+  history.pushState(obj, obj.title, obj.route);
+}
+navigateTo();
+$("[href='" + matchRoute + "']")[0].classList.add("active")
+new bootstrap.Collapse($("[href='" + matchRoute + "']").closest("li.collapsed").find(".m-link").attr("data-bs-target"))
+
+
+
+
+
+$(document).ready(() => {
+
+  var pdata = App.api("get_profile", { token: window.userToken })
+  if (pdata.status == "expired") {
+    App.notify("Expired!", { style: "danger" })
+    setTimeout(() => {
+
+      window.location = "/admin/logout"
+    }, 2000)
+  } else {
+    $(".user-name").html(pdata.full_name)
+    $(".user-email").html(pdata.email)
+    $("img.user-profile").attr("src", pdata.image_url)
+    $("#profile_pic").attr('style', `background-size: cover; background-image: url('` + pdata.image_url + `'); height: 100px;width: 100px`);
+    $("#profile_pic2").attr('style', `background-size: cover; background-image: url('` + pdata.image_url + `'); height: 40px;width: 40px`);
+    $("#user_initial, #user_initial2").hide();
+    $("#cur_user, #cur_user2").html(pdata.full_name)
+
+  }
+
+})
+$(document).on("click", "a.navi", function(event) {
+  event.preventDefault();
+  $("a.ms-link").removeClass("active")
+  $(this)[0].classList.contains("ms-link") ? $(this)[0].classList.add("active") : null;
+  navigateTo($(this).attr("href"))
+});
+</script>

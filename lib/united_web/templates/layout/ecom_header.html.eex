@@ -1,0 +1,73 @@
+<%
+path = Application.app_dir(:united, "priv/static/html/header.html") 
+
+if path |> File.exists? do 
+
+else
+path |> File.touch 
+end 
+
+%>
+
+<%= if Enum.any?(@conn.path_info, fn x -> x == "book"  end) do %>
+<% IO.inspect("has book")%>
+<% c = @conn 
+	title = c.private.plug_session["title"]
+	description = c.private.plug_session["description"]
+	IO.inspect(title)
+	IO.inspect(description)
+id = ""
+img_url = Map.get(c.private.plug_session, "img_url", "/images/bg.jpg")
+
+string = ~s(
+<meta property="og:url"           content="https://library.kajangcmc.org/book/#{id}" />
+<meta property="og:type"          content="website" />
+<meta property="og:title"         content="#{title}" />
+<meta property="og:description"   content="#{description}" />
+<meta property="og:image"         content="https://library.kajangcmc.org#{img_url}" />)
+%>
+<%= raw(string) %>
+
+<% else %>
+
+
+	<%= if Enum.any?(@conn.path_info, fn x ->  x == "events" end) do %>
+	<% IO.inspect("has event")%>
+	<% c = @conn 
+		title = c.private.plug_session["title"]
+		description = c.private.plug_session["description"]
+		IO.inspect(title)
+		IO.inspect(description)
+	id = ""
+	img_url = Map.get(c.private.plug_session, "img_url", "/images/bg.jpg")
+
+	string = ~s(
+	<meta property="og:url"           content="https://library.kajangcmc.org/events/#{id}" />
+	<meta property="og:type"          content="website" />
+	<meta property="og:title"         content="#{title}" />
+	<meta property="og:description"   content="#{description}" />
+	<meta property="og:image"         content="https://library.kajangcmc.org#{img_url}" />)
+	%>
+	<%= raw(string) %>
+	<% else %>
+
+
+		<% c = @conn 
+		title = c.private.plug_session["title"]
+		description = c.private.plug_session["description"]
+		IO.inspect(title)
+		IO.inspect(description)
+		string = ~s(
+		<meta property="og:url"           content="https://library.kajangcmc.org" />
+		<meta property="og:type"          content="website" />
+		<meta property="og:title"         content="#{title}" />
+		<meta property="og:description"   content="#{description}" />
+		<meta property="og:image"         content="https://library.kajangcmc.org/images/uploads/logo.png" />)
+		%>
+		<%= raw(string) %>
+
+
+<% end %>
+
+
+<% end %>

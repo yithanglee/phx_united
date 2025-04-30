@@ -1,0 +1,115 @@
+<!-- start: sidebar -->
+<div class="sidebar p-2 py-md-3 @@cardClass">
+  <div class="container-fluid">
+    <!-- sidebar: title-->
+    <div class="title-text d-flex align-items-center mb-4 mt-1">
+      
+      <div class="dropdown morphing scale-left">
+        <a class="dropdown-toggle more-icon" href="#" role="button" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h"></i></a>
+        <ul class="dropdown-menu shadow border-0 p-2 mt-2" data-bs-popper="none">
+          <li class="fw-bold px-2">Quick Actions</li>
+          <li>
+            <hr class="dropdown-divider">
+          </li>
+          <li><a class="dropdown-item" href="/">Landing page</a></li>
+        </ul>
+      </div>
+    </div>
+    <!-- sidebar: menu list -->
+    <div class="main-menu flex-grow-1">
+      <ul class="menu-list">
+        <li class="divider py-2 lh-sm"><span class="small">MAIN</span><br> <small class="text-muted"></small></li>
+        <li class="collapsed">
+          <a class="m-link collapsed" data-bs-toggle="collapse" data-bs-target="#my_dashboard" href="#" aria-expanded="false">
+            <i class="fa fa-home"> </i>
+            <span class="ms-2">My Dashboard</span>
+            <span class="arrow fa fa-angle-right ms-auto text-end"></span>
+          </a>
+          <!-- Menu: Sub menu ul -->
+          <ul class="sub-menu collapse" id="my_dashboard">
+            <li><a class="ms-link navi" href="/admin/dashboard">Admins</a></li>
+            <li><a class="ms-link navi" href="/admin/statistic">Statistic</a></li>
+
+            <li><a class="ms-link navi" href="/admin/search">Search</a></li>
+          </ul>
+        </li>
+        <li class="collapsed">
+          <a class="m-link collapsed " data-bs-toggle="collapse" data-bs-target="#loan-management" href="#" aria-expanded="false">
+            <i class="fa fa-history"> </i>
+            <span class="ms-2">Loans</span>
+            <span class="arrow fa fa-angle-right ms-auto text-end"></span>
+          </a>
+          <!-- Menu: Sub menu ul -->
+          <ul class="sub-menu collapse " id="loan-management">
+            <li><a class="ms-link navi" href="/admin/loans">Loans</a></li>
+            <li><a class="ms-link navi" href="/admin/reminders">Reminders</a></li>
+            <li><a class="ms-link navi" href="/admin/reservations">Reservations</a></li>
+            <li><a class="ms-link navi" href="/admin/histories">History</a></li>
+          </ul>
+        </li>
+        <li class="collapsed">
+          <a class="m-link collapsed " data-bs-toggle="collapse" data-bs-target="#book-management" href="#" aria-expanded="false">
+            <i class="fa fa-book"> </i>
+            <span class="ms-2">Books</span>
+            <span class="arrow fa fa-angle-right ms-auto text-end"></span>
+          </a>
+          <!-- Menu: Sub menu ul -->
+          <ul class="sub-menu collapse " id="book-management">
+            <li><a class="ms-link navi" href="/admin/books">Books</a></li>
+            <li><a class="ms-link navi" href="/admin/categories">Categories</a></li>
+            <li><a class="ms-link navi" href="/admin/scan">Scan</a></li>
+            <li><a class="ms-link navi" href="/admin/uploads">Upload</a></li>
+          </ul>
+        </li>
+        <li class="collapsed">
+          <a class="m-link collapsed " data-bs-toggle="collapse" data-bs-target="#member-management" href="#" aria-expanded="false">
+            <i class="fa fa-users"> </i>
+            <span class="ms-2">Users</span>
+            <span class="arrow fa fa-angle-right ms-auto text-end"></span>
+          </a>
+          <!-- Menu: Sub menu ul -->
+          <ul class="sub-menu collapse " id="member-management">
+            <li><a class="ms-link navi" href="/admin/members">Members</a></li>
+            <li><a class="ms-link navi" href="/admin/events">Events</a></li>
+          </ul>
+        </li>
+        <li class="collapsed">
+          <a class="m-link collapsed " data-bs-toggle="collapse" data-bs-target="#settings-management" href="#" aria-expanded="false"> 
+            <i class="fa fa-cogs"> </i>
+            <span class="ms-2">Settings</span>
+            <span class="arrow fa fa-angle-right ms-auto text-end"></span>
+          </a>
+          <!-- Menu: Sub menu ul -->
+          <ul class="sub-menu collapse " id="settings-management">
+            <li><a class="ms-link navi" href="/admin/holidays">Holidays</a></li>
+            <li><a class="ms-link navi" href="/admin/home_layout">Website Home Layout</a></li>
+            <li><a class="ms-link navi" href="/admin/home_books">Landing Page Books</a></li>
+            <li><a class="ms-link navi" href="/admin/organization_info">Organization Info</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <!---
+    <span id="Changelog"></span>
+    -->
+    <!-- sidebar: footer link -->
+    <!-- sidebar: footer link -->
+    <ul class="menu-list nav navbar-nav flex-row text-center menu-footer-link">
+      <li class="nav-item flex-fill p-2">
+        <a class="d-inline-block w-100 color-400" href="javascript:void(0);" onclick="checkInMember()"  title="Check In">
+          <i class="fa fa-qrcode fa-2x text-success"></i>
+        </a>
+      </li>
+      <li class="nav-item flex-fill p-2">
+        <a class="d-inline-block w-100 color-400" href="javascript:void(0);"  onclick="checkOutMember()"  title="Check Out">
+          <i class="fa fa-qrcode fa-2x text-danger"></i>
+        </a>
+      </li>
+      <li class="nav-item flex-fill p-2">
+        <a class="d-inline-block w-100 color-400" href="/admin/logout" title="sign-out">
+          <i class="fa fa-sign-out fa-2x"></i>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

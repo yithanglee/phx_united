@@ -1,0 +1,71 @@
+<nav class="d-lg-none d-block navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="./dashboard">
+      ARK Library
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarColor02">
+      <ul class="navbar-nav me-auto  d-lg-none">
+        <li class="nav-item">
+          <a class="nav-link" href="./dashboard" onclick="">Dashboard
+            <span class="visually-hidden">(current)</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="navi nav-link" href="/admin/loans">Loans</a>
+        </li>
+        <li class="nav-item">
+          <a class="navi nav-link" href="/admin/books">Books</a>
+        </li>
+        <li class="nav-item">
+          <a class="navi nav-link" href="/admin/members">Members</a>
+        </li>
+        <li class="nav-item">
+          <a class="navi nav-link" href="/admin/uploads">Upload</a>
+        </li>
+        <li class="nav-item">
+          <a class="navi nav-link" href="/admin/scan">Scan</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:void(0);" onclick="checkInMember()">Check In</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:void(0);" onclick="checkOutMember()">Check Out</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:void(0);">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/logout">Logout</a>
+        </li>
+        <li class="nav-item dropdown d-none">
+          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <a class="dropdown-item" href="#">Something else here</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Separated link</a>
+          </div>
+        </li>
+      </ul>
+      <form class="d-flex" action="javascript:void(0);">
+        <input id="tsearch" type="text" placeholder="Search" class="form-control form-control-sm">
+        <button onclick="navigateTo('/admin/search')" type="submit" class="btn btn-primary my-2 my-sm-0">Search</button>
+      </form>
+      <div class="bg-secondary" style="height: 200px;">
+        <div class="d-flex justify-content-center align-items-center pt-4 ">
+          <div id="profile_pic" style="width: 100px;height: 100px;" class="rounded-circle text-center bg-primary d-flex align-items-center justify-content-center text-white">
+            <span style="font-size: 4em;" id="user_initial">U</span>
+          </div>
+        </div>
+        <div class="d-flex flex-column justify-content-center text-center ">
+          <span class="lead text-white" id="cur_user">Famour User</span>
+          <a href="/admin/profile" class="navi">Edit Profile</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,36 @@
+<style type="text/css">
+#info {
+  font-size: smaller;
+}
+</style>
+<div style="">
+  
+<h4>Hi
+  <%= @member.name %>,</h4>
+<p>Your reserved book is available now, kindly visit the library to get the book.
+</p>
+<ol>
+
+  <li>
+    <%= @book.title %> 
+  </li>
+ 
+</ol>
+<p style="padding-top: 20px;">
+
+  Regards,<br>
+  <strong>Ark Library</strong><br>
+<div style="">
+    <img src="https://library.kajangcmc.org/images/logo.png" style="height: 180px;padding: 24px;background-color: gray;">
+  </div>
+  <div id="info">
+    Opening Hours<br>
+    Monday and Wed:11.30am - 3pm<br>
+    Sunday : 9.15am - 10.45am
+    <br><br>
+    Address<br>
+    No. 514, Jalan Tuanku Hishamuddin,<br>
+    Sungai Chua, Selangor, 43000 Kajang
+  </div>
+</p>
+</div>

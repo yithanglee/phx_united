@@ -1,0 +1,590 @@
+<script src="/js/qr-scanner.umd.min.js"></script>
+<script type="text/javascript">
+QrScanner.WORKER_PATH = '/js/qr-scanner-worker.min.js';
+</script>
+<div id="sound"></div>
+<style type="text/css">
+.sres {
+  cursor: pointer;
+}
+</style>
+<div class="row gx-0">
+  <div aria-label="mainbar" class="col-12 ">
+    <div class="row gx-0">
+      <div class="col-12 col-lg-6 offset-lg-3">
+        <nav class="px-2 pt-2 d-flex justify-content-between align-items-center">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="px-0 pe-2 btn d-block  " onclick="toggleSidebar();">
+              <i class=" fa fa-list"></i>
+            </div>
+          </div>
+          <div class="btn p-0" onclick='navigateTo("/home")'>
+            <span class="fs-3">ARK Library</span>
+          </div>
+          <div class="d-flex justify-content-center align-items-center position-relative">
+            <span class="ps-1 d-none d-lg-block" id="ulg">Login</span>
+            <div class="btn d-block " onclick='
+              if (localStorage.getItem("pkey") != null) {
+                navigateTo("/account")
+              } else {
+                navigateTo("/register")
+              }
+            '>
+              <i class=" fa fa-user"></i>
+            </div>
+            <span class="online-status"></span>
+          </div>
+        </nav>
+        <nav>
+          <div class="pb-2">
+            <form onchange="saveSearchQuery()" action="/search" method="get" id="searchz" class="my-2 mx-lg-0 mx-2 position-relative d-flex align-items-center">
+              <div class=" end-0 position-absolute">
+                <i class="btn fa fa-qrcode px-1 text-success " onclick="
+            navigateTo('/loans');
+            scan_barcode()">
+                </i>
+                <i class="btn fa fa-search px-2 text-primary " onclick="
+            navigateTo('/search');
+            ">
+                </i>
+              </div>
+              <input autocomplete="off" type="text" list="browsers" class=" form-control" placeholder="Search by title, ISBN, barcode" name="query">
+              <div class="d-none position-absolute bg-white w-100" id="autolist" style="top: 40px; z-index: 1000;">
+              </div>
+            </form>
+          </div>
+        </nav>
+      </div>
+    </div>
+    <section class="mt-4 row gx-0 bg-primary d-none d-lg-block">
+      <div class="col-12">
+        <div class="d-flex justify-content-center gap-4 align-items-center " id="menus">
+          <div class="btn text-center text-white" aria-label="landing" onclick='navigateTo("/home")'>
+            Home
+          </div>
+          <div class="btn text-center text-white" aria-label="public_books" onclick='navigateTo("/books")'>
+            Books
+          </div>
+          <div class="btn text-center text-white" aria-label="public_search" onclick='navigateTo("/search")'>
+            Search
+          </div>
+          <div class="btn text-center text-white" aria-label="member_loan" onclick='navigateTo("/loans")'>
+            Loans
+          </div>
+          <div class="btn text-center text-white" aria-label="member_loan" onclick='navigateTo("/reservations")'>
+            Reservations
+          </div>
+          <div class=" position-relative btn text-center text-white" aria-label="member_loan" onclick='navigateTo("/current_event")'>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning">1</span>
+            <span>读书会</span>
+          </div>
+          <div class="btn text-center text-white" aria-label="tnc" onclick='navigateTo("/tnc")'>
+            Library Rules
+          </div>
+          <div id="aax" class="btn  text-center text-white">
+            <a class="text-white" href="/admin/login">Admin </a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="row gx-0 py-4 bnn" style='
+        position: relative;                                        
+        height: 200px;
+        overflow: hidden;
+        background: #C04848;
+        background: linear-gradient(rgb(72, 0, 72, 0.8), rgb(192, 72, 72, 0.8)), url("/images/bg.jpg");
+        background: linear-gradient(rgba(217, 199, 217, 0.24), rgba(187, 170, 170, 0.82)), url("/images/home-bg.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: bottom;
+        background-attachment: fixed;
+          transition: height 2s;'>
+      <i onclick="$('.bnn').addClass('d-none')" class="fa btn fa-times text-white position-absolute" style="right: 4px;width: 10px;top: 0px;"></i>
+      <div class="col-12 col-lg-6 offset-lg-3">
+        <div class="d-flex justify-content-center align-items-center">
+          <div class="ps-4 d-flex flex-column justify-content-center align-items-center">
+            <div class="fs-1  d-flex flex-column ">
+              <img src="/images/logo.png" style="max-width:  150px; max-height: 64vh;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <section class="pb-4" id="subcontent" style="min-height: 100vh;">
+    </section>
+  </div>
+  <div aria-label="sidebar" class="user-select-none w-0 position-fixed position-lg-block min-vh-100 col-10  bg-light end-0" style="z-index: 20;">
+    <div class="d-flex align-items-center gap-2">
+      <i onclick="toggleSidebar();" class="btn fa fa-minus"></i>
+      <span class="py-2">Welcome! <span class="ps-1" id="ulg2"></span></span>
+      <i onclick="modalQr()" class="btn fa fa-2x fa-qrcode text-primary"></i>
+    </div>
+    <div class="list-group">
+      <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/home")'>
+        <i class="fa fa-home me-2 text-primary"></i>Home </a>
+        <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/current_event")'>
+        <i class="fa fa-info me-2 text-primary"></i>读书会 </a>
+      <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/books")'>
+        <i class="fa fa-book me-2 text-success"></i>Books </a>
+      <!-- slot for categories-->
+      <div id="category_listingx" class="py-2 d-flex flex-column" style="height: 300px;overflow-x: scroll;">
+      </div>
+      <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/search")'>
+        <i class="fa fa-search me-2 text-warning"></i>Search </a>
+      <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/loans")'>
+        <i class="fa fa-list me-2 text-info"></i>Loans </a>
+      <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/reservations")'>
+        <i class="fa fa-list me-2 text-info"></i>Reservations </a>
+      <a class="list-group-item list-group-item-action" href="javascript:void(0);" onclick='
+        toggleSidebar();
+        navigateTo("/tnc")'>
+        <i class="fa fa-info me-2 text-success"></i>Library Rules </a>
+      <a class="list-group-item list-group-item-action" href="/admin/login">
+        <i class="fa fa-info me-2 text-danger"></i> Admin </a>
+    </div>
+    <div class="m-4 d-flex justify-content-center">
+      <div class="w-100 d-flex justify-content-center check-in-code d-none" id="cic">
+      </div>
+    </div>
+  </div>
+</div>
+<span id="sign-in-button"></span>
+<div id="recaptcha-container"></div>
+<script type="text/javascript">
+
+var query_string
+var idleTime = 0
+var interval = 1000
+var startTimer = false
+
+
+function saveSearchQuery(){
+ localStorage.setItem("public_search", $("input[name='query']").val()) 
+}
+
+$("input[name='query']").on("focusout", () => {
+  setTimeout(() => {
+    $("input[name='query']").val("")
+    $("#autolist").html("")
+    $("#autolist").addClass("d-none")
+
+  }, 1500)
+})
+$("input[name='query']").on("keyup", () => {
+  var s = $("input[name='query']").val()
+  startTimer = true
+  var idleInterval = setInterval(checkNewInput, interval); // 1 second
+})
+
+function checkNewInput() {
+  var s = $("input[name='query']").val()
+  if (startTimer) {
+    if (query_string == s) {
+      idleTime += 1
+      if (idleTime == 2) {
+        idleTime = 0
+        console.log("search :" + s)
+        if (s != "") {
+          hprocessSearchForm("form#searchz")
+        }
+        startTimer = false
+      }
+    } else {
+      query_string = s
+    }
+  }
+}
+
+function modalQr() {
+  if (window.pdata != null) {
+    window.user = window.pdata
+    App.modal({ autoClose: false, selector: "#mySubModal", content: $(".check-in-code").parent().html(), header: "Check In" })
+  } else {
+    App.notify("Please Login")
+  }
+}
+
+function genCode() {
+  $(".check-in-code").html('')
+  if (window.userToken != null) {
+
+
+    var t = $("div[aria-label='sidebar']").hasClass("d-none")
+    if (t == false) {
+      $(".check-in-code").each((i, v) => {
+        var qrcode = new QRCode($(v)[0], {
+          text: App.api("get_check_in", { token: window.userToken }),
+
+          colorDark: "#5868bf",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      })
+    }
+
+
+  }
+}
+genCode();
+setInterval(() => {
+  genCode();
+}, 20000)
+
+
+function confirmReserve(bi, member_id) {
+  function success(status) {
+    if (status.status == "error") {
+      App.notify("Reserved!", { type: "warning" })
+    } else {
+      checkLoginUser()
+      App.notify("Done!", { type: "success" })
+
+    }
+  }
+  App.post("reserve_book", { book_inventory_id: bi, token: member_id }, null, success)
+}
+
+function reserveBook(bi, member_id) {
+  App.modal({
+    autoClose: false,
+    header: "Reserve this book?",
+    content: `
+<div class="d-flex flex-column align-items-center">
+  <div>You are reserving this book. When it returns, we will email you.</div>
+  <div class="btn btn-primary" onclick="
+    confirmReserve('` + bi + `', '` + member_id + `'); 
+    $('#myModal').modal('hide');">
+    Confirm
+  </div>
+</div>
+
+`
+
+
+  })
+}
+
+
+function hprocessSearchForm(dom) {
+  $("#autolist").removeClass("d-none")
+  var formData = new FormData($(dom)[0])
+  formData.append("scope", "strong_search")
+  $.ajax({
+      url: "/api/webhook",
+      dataType: "json",
+      headers: {
+        "Authorization": "Basic " + window.userToken
+      },
+      method: "POST",
+      enctype: "multipart/form-data",
+      processData: false, // tell jQuery not to process the data
+      contentType: false,
+      data: formData
+    })
+    .done(function(j) {
+      var count = j.length
+      // App.notify("Searched! Found: " + count, {
+      //   placement: {
+      //     from: "bottom",
+      //     align: "center"
+      //   },
+      //   type: "success"
+      // });
+      $("#autolist").html("")
+      j.forEach((bookInventory, i) => {
+        var images_list = []
+        bookInventory.book_images.forEach((images, i) => {
+          images_list.push(`<div style="width: 100px; height: 150px; background-size: cover; background-position: center; background-image: url('` + images.img_url + `')"></div>`)
+        })
+        var aut = "No Author"
+        if (bookInventory.author != null) {
+          aut = bookInventory.author.name
+        }
+        var card = `
+                <div class="d-flex flex-column p-2 sres" 
+                   onclick="
+                    window.bookData = ` + bookInventory.id + `
+                  navigateTo('/book/` + bookInventory.id + `' );"
+                  >
+                  <span>` + bookInventory.book.title + `</span>
+                  <small>` + bookInventory.book.isbn + `</small>
+                  <small class="text-muted">` + aut + `</small>
+                  <small>` + bookInventory.code + `</small>
+                </div>
+                  `
+        $("#autolist").append(card)
+      })
+    }).fail(() => {
+      App.notify("Not found!", {
+        type: "danger"
+      });
+    })
+}
+
+$(document).on("click", ".sres", () => {
+  // alert("!")
+  $("input[name='query']").val("")
+  $("#autolist").html("")
+  $("#autolist").addClass("d-none")
+})
+
+// nav toggles
+function toggleSidebar(forceClose) {
+  console.log("sidebar")
+  if (forceClose != null) {
+    if (forceClose) {
+
+      $("div[aria-label='sidebar']").removeClass("col-lg-2")
+      $("div[aria-label='mainbar']").addClass("col-lg-10")
+      $("div[aria-label='sidebar']").addClass("w-0")
+    } else {
+      $("div[aria-label='sidebar']").addClass("col-lg-2")
+      $("div[aria-label='mainbar']").removeClass("col-lg-10")
+      $("div[aria-label='sidebar']").removeClass("w-0")
+    }
+
+  } else {
+
+    $("div[aria-label='sidebar']").toggleClass("col-lg-2")
+    $("div[aria-label='mainbar']").toggleClass("col-lg-10")
+    $("div[aria-label='sidebar']").toggleClass("w-0")
+    $("#cic").toggleClass("d-none")
+  }
+  genCode()
+}
+
+
+var route_names = [
+  { html: "landing.html", title: "Home - ARK Library", route: "/home" },
+  { html: "member_reservations.html", title: "Reservations - ARK Library", route: "/reservations" },
+  { html: "public_books.html", title: "Books - ARK Library", route: "/books" },
+  { html: "public_books.html", title: "Books - ARK Library", route: "/books/:category" },
+  { html: "public_books.html", title: "Books - ARK Library", route: "/books/:category/:page_no" },
+  { html: "public_search.html", title: "Search - ARK Library", route: "/search" },
+  { html: "member_loan.html", title: "Loan - ARK Library", route: "/loans" },
+  { html: "register.html", title: "Register - ARK Library", route: "/register" },
+  { html: "account.html", title: "Account - ARK Library", route: "/account" },
+  { html: "book_detail.html", title: "Detail - ARK Library", route: "/book/:code" },
+  { html: "tnc.html", title: "Rules - ARK Library", route: "/tnc" },
+  { html: "current_event.html", title: "Current Event - ARK Library", route: "/current_event" },
+]
+
+
+function navigateTo(route, additionalParamString) {
+  if (route == null) {
+    route = window.location.pathname
+  }
+  var current_pattern = route.split("/").filter((v, i) => {
+    return v != "";
+  })
+  console.log(current_pattern)
+
+  var match_1 = route_names.filter((rroute, i) => {
+    var z = rroute.route.split("/").filter((v, i) => {
+      return v != "";
+    })
+    console.log(z[z.length - 1])
+
+    if (z[z.length - 1].includes(":")) {
+      return z.length == current_pattern.length
+    } else {
+
+      return z.length == current_pattern.length && z[z.length - 1] == current_pattern[z.length - 1];
+    }
+  })
+
+  var match_2 =
+    match_1.filter((rroute, i) => {
+      console.log(rroute)
+      var z = rroute.route.split("/").filter((v, i) => {
+        return v != "";
+      })
+      return z[0] == current_pattern[0]
+    })
+
+  if (match_2.length > 0) {
+
+    var params = {}
+    match_2.forEach((rroute, i) => {
+      var z = rroute.route.split("/").forEach((v, ii) => {
+        if (v.includes(":")) {
+          params[v.replace(":", "")] = current_pattern[ii - 1]
+        }
+      })
+    })
+    console.log("params here")
+    console.log(params)
+    window.pageParams = params
+    var xParamString = ""
+    if (additionalParamString == null) {
+      xParamString = ""
+    } else {
+      xParamString = additionalParamString
+    }
+
+    if (window.back) {
+      window.back = false
+    } else {
+      var stateObj = { fn: `navigateTo('` + route + `', '` + xParamString + `')`, params: params };
+      console.log("route")
+      console.log(route)
+      window.stateObj = stateObj
+      window.matchTitle = match_2[0].title
+      window.matchRoute = route
+
+
+      if (Object.keys(params).includes("title")) {
+        $("title").html(params.title)
+        history.pushState(stateObj, params.title, route);
+      } else {
+        $("title").html(match_2[0].title)
+        history.pushState(stateObj, match_2[0].title, route);
+      }
+    }
+    var html = App.html(match_2[0].html)
+    var keys = Object.keys(match_2[0])
+    if (keys.includes("skipNav")) {
+      $("#subcontent").html(html)
+
+    } else {
+      var nav = App.html("blog_nav.html")
+
+      if (keys.includes("customNav")) {
+        var nav = App.html(match_2[0].customNav)
+      }
+
+      $("#subcontent").html(nav)
+      $("#subcontent").append(html)
+    }
+    return match_2[0]
+  } else {
+    var html = App.html("landing.html")
+    // var nav = App.html("blog_nav.html")
+    // $("#subcontent").html(nav)
+    $("#subcontent").html(html)
+
+  }
+}
+
+
+function updatePageParams(obj) {
+  window.stateObj = obj
+  history.pushState(obj, obj.title, obj.route);
+}
+
+
+
+var book_categorySourcex = new phoenixModel({
+  columns: [{
+    label: 'Action',
+    data: 'id'
+  }],
+  moduleName: "BookCategory",
+  link: "BookCategory",
+  buttons: [],
+  tableSelector: "#" + 'bc2c'
+})
+getTableData(book_categorySourcex, 100, () => {
+  book_categorySourcex.allData.sort(function(b, a) {
+    return b.code.localeCompare(a.code);
+  })
+  for (var i = 0; i < book_categorySourcex.allData.length; i++) {
+    additionalParamString = "&category_code=" + book_categorySourcex.allData[i].code
+    var card = `
+          <span class="px-lg-2 mx-lg-2 px-4 mx-4 rounded bct border-1 border-bottom pb-2 text-muted btn "
+            onclick='
+            App.show();
+            navigateTo("/books/` + book_categorySourcex.allData[i].code + `", "` + additionalParamString + `")
+            toggleSidebar();
+            $("#lbc").html("` + book_categorySourcex.allData[i].code + ` ` + book_categorySourcex.allData[i].name + `")
+            $(".bct").removeClass("bg-secondary text-white")
+            $(this).removeClass("text-muted")
+            $(this).addClass("bg-secondary text-white")
+            book_inventorySource.table.search("").draw()
+            book_inventorySource.table.columns(1)
+        .search("` + book_categorySourcex.allData[i].id + `")
+        .draw();
+        App.hide();
+        '>
+              <small class="d-flex justify-content-between align-items-center">
+                <span>` + book_categorySourcex.allData[i].code + ` ` + book_categorySourcex.allData[i].name + `</span>
+                <span>` + book_categorySourcex.allData[i].book_count + `</span>
+              </small>
+            </span>
+    `
+    $("#category_listingx").append(card)
+  }
+})
+
+function checkLoginUser() {
+  if (localStorage.getItem("pkey") != null) {
+    window.userToken = localStorage.getItem("pkey")
+
+    var pdata = App.api("get_member_profile", { token: window.userToken }, () => {
+      window.member = null
+      localStorage.removeItem("pkey")
+      $("#ulg").html("Login")
+
+
+      $("#xr").removeClass("d-none")
+      $("#axr").addClass("d-none")
+      $("#aax").removeClass("d-none")
+
+      $(".online-status").removeClass("bg-success")
+      window.userToken = null
+      App.notify("Logout")
+    })
+    window.pdata = pdata
+    window.member = pdata
+    $("#xr").addClass("d-none")
+    $("#axr").removeClass("d-none")
+    $("#axr").find("span[aria-label='displayName']").html("Hi, " + pdata.name)
+    $("#ulg").html("Hi, " + pdata.name)
+
+    $("#ulg2").html(pdata.name)
+    $("#aax").addClass("d-none")
+    $(".online-status").addClass("bg-success")
+    genCode();
+  }
+}
+
+var ui;
+$(document).ready(() => {
+  checkLoginUser();
+
+
+  var firebaseConfig = <%= raw("#{firebase_config() |> Jason.encode!}") %>;
+  console.info(firebaseConfig)
+  if (!firebase.apps.length) {
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.auth().languageCode = "en";
+  } else {
+    firebase.app(); // if already initialized, use that one
+  }
+  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+    "sign-in-button", {
+      size: "invisible",
+      callback: function(response) {
+        console.log(response);
+      }
+    }
+  );
+  ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+
+  navigateTo();
+})
+</script>
