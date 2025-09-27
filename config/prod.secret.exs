@@ -45,7 +45,7 @@ config :united, :facebook,
   base_url: System.get_env("FB_CALLBACK_PROD") |> String.split("/fb_callback") |> List.first(),
   callback_url: System.get_env("FB_CALLBACK_PROD")
 
-config :united, FbEcom.Mailer, adapter: Bamboo.SendGridAdapter
+# config :united, FbEcom.Mailer, adapter: Bamboo.SendGridAdapter
 
 # config :united, United.Mailer,
 #   adapter: Bamboo.SendGridAdapter,

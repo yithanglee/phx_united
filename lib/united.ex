@@ -72,7 +72,6 @@ defmodule United do
       |> Enum.reject(&(&1 == nil))
       |> Enum.filter(&(&1.late_days > -7))
       |> Enum.group_by(& &1.member)
-      |> IO.inspect()
 
     for member <- members |> Map.keys() do
       loans = members[member]
@@ -84,8 +83,7 @@ defmodule United do
                member.email,
                member,
                books,
-               %United.Settings.Organization{}
-               |> Map.merge(member.organization)
+               %United.Settings.Organization{} |> Map.merge(member.organization)
              )
            )
            |> IO.inspect(label: "mailer") do

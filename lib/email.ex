@@ -4,7 +4,7 @@ defmodule United.Mailer do
   def send_email_for_org(org, email) do
     adapter_config = get_smtp_config_for_org(org) |> IO.inspect()
 
-    deliver_later(email, config: adapter_config)
+    deliver_now(email, config: adapter_config) |> IO.inspect()
   end
 
   defp get_smtp_config_for_org(organization) do
@@ -16,7 +16,7 @@ defmodule United.Mailer do
           adapter: Bamboo.SMTPAdapter,
           server: organization.smtp_setting.server || "smtp.mailersend.net",
           hostname: organization.smtp_setting.hostname || "united_app",
-          port: 587,
+          port: 25,
           username: organization.smtp_setting.username,
           password: organization.smtp_setting.crypted_password |> United.Encryption.decrypt(),
           tls: :always,
@@ -104,9 +104,10 @@ defmodule United.Email do
       end
 
     new_email()
-    # Set a default from
-    |> from("no-reply@#{default_host}")
-    # Set default layout
+
+    # |> from("no-reply@#{default_host}")
+    |> from("pioneer_cmc@damienslab.com")
+
     |> put_html_layout({UnitedWeb.LayoutView, "email.html"})
 
     # Set default text layout
@@ -114,4 +115,3 @@ defmodule United.Email do
   end
 end
 
-# United.Email.welcome_email |> United.Mailer.deliver_now

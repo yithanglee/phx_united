@@ -1057,6 +1057,10 @@ defmodule UnitedWeb.ApiController do
         ""
       end
 
+
+
+PhxSolid.QueryBuilder.build_datatable_query(PhxSolid.Generic.Product, %{"length" => "10", "start" => "0"} , %{  "additional_joins" => [%{"assoc" => "category", "prefix" => "b", "join_suffix" => "a"}], "addtional_search" => [%{"column" => "category_id, "prefix" => "a", "operator" => "", "value" => 2 }],     "preloads" => [:category]})
+
     Logger.info("additional_order_statements -")
     IO.inspect(post_additional_order_statements)
 

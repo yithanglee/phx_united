@@ -3574,6 +3574,28 @@ defmodule United.Settings do
       group by  m.name, m.email, to_char( l.inserted_at , 'YYYY') order by to_char( l.inserted_at , 'YYYY') desc ;
     """
 
+    query4 = """
+    SELECT 
+      REPLACE(b.title, ',', ';') as title,
+      b.isbn,
+      b.call_number,
+      b.price,
+     
+      REPLACE(REPLACE(a.name, ',', ';'), '"', '') as author_name,
+      p.name as publisher_name,
+      o.name as organization_name,
+      bc.name as category_name,
+      bc.code as category_code
+    FROM books b
+    LEFT JOIN authors a ON b.author_id = a.id
+    LEFT JOIN publishers p ON b.publisher_id = p.id
+    LEFT JOIN organizations o ON b.organization_id = o.id
+    LEFT JOIN book_inventories binv ON b.id = binv.book_id
+    LEFT JOIN book_categories bc ON binv.book_category_id = bc.id
+    GROUP BY b.id, a.name, p.name, o.name, bc.name, bc.code
+    ORDER BY b.title
+    """
+
     params = []
 
     query =
@@ -3583,6 +3605,9 @@ defmodule United.Settings do
 
         "member_month" ->
           query3
+
+        "books" ->
+          query4
 
         _ ->
           query2
