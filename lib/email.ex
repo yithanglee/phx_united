@@ -10,15 +10,17 @@ defmodule United.Mailer do
   defp get_smtp_config_for_org(organization) do
     # config :united, United.Mailer, adapter: Bamboo.LocalAdapter
 
-    case organization.smtp_setting.adapter_type do
+    preferred_type = "smtp"
+
+    case preferred_type do
       "smtp" ->
         %{
           adapter: Bamboo.SMTPAdapter,
-          server: organization.smtp_setting.server || "smtp.mailersend.net",
-          hostname: organization.smtp_setting.hostname || "united_app",
+          server: "localhost",
+          hostname: "mail.damienslab.com",
           port: 25,
-          username: organization.smtp_setting.username,
-          password: organization.smtp_setting.crypted_password |> United.Encryption.decrypt(),
+          username: "ubuntu",
+          password: "unwanted2",
           tls: :always,
           allowed_tls_versions: [:"tlsv1.2"],
           tls_log_level: :error,
@@ -106,7 +108,7 @@ defmodule United.Email do
     new_email()
 
     # |> from("no-reply@#{default_host}")
-    |> from("pioneer_cmc@damienslab.com")
+    |> from("kajang_cmc@damienslab.com")
 
     |> put_html_layout({UnitedWeb.LayoutView, "email.html"})
 

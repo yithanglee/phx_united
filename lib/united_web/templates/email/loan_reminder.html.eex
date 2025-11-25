@@ -33,7 +33,7 @@ end
   Regards,<br>
   <strong><%= @organization.name %></strong><br>
 <div style="">
-  	<img src="<%= host %><%= @organization.img_url %>" style="height: 180px;padding: 24px;background-color: white;">
+  	<img src="<%= host %><%= @organization.img_url %>" style="height: 180px;padding: 24px;background-color: gray;">
   </div>
   <div id="info">
     Opening Hours<br>

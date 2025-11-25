@@ -88,8 +88,8 @@ defmodule UnitedWeb.Router do
     delete("/webhook", ApiController, :webhook_delete)
     options("/:model", ApiController, :datatable)
     get("/:model", ApiController, :datatable)
-    # post("/:model", ApiController, :form_submission)
-    # delete("/:model/:id", ApiController, :delete_data)
+    post("/:model", ApiController, :form_submission)
+    delete("/:model/:id", ApiController, :delete_data)
   end
 
   scope "/svt_api", UnitedWeb do

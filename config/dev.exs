@@ -4,8 +4,8 @@ use Mix.Config
 config :united, United.Repo,
   username: "postgres",
   password: "postgres",
-  database: "#{System.get_env("SNAME")}_dev",
-  hostname: "localhost",
+  database: System.get_env("DATABASE_NAME") || "#{System.get_env("SNAME")}_dev",
+  hostname: System.get_env("HOSTNAME") || "localhost",
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 

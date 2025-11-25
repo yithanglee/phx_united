@@ -82,11 +82,13 @@ defmodule UnitedWeb.ApiController do
             |> List.first()
             |> IO.inspect(label: "phx request")
 
-          organization =
-            Settings.get_organization_by_host_name(host_name |> String.replace("https://", ""))
+          # organization =
+          #   Settings.get_organization_by_host_name(host_name |> String.replace("https://", ""))
 
           # organization = params["organization_id"] |> Settings.get_organization!()
           res = params["result"]
+
+          organization = Settings.list_organizations() |> List.first()
 
           {:ok, member} =
             Settings.lazy_get_member(res["email"], res["name"], res["uid"], organization.id)
@@ -263,6 +265,9 @@ defmodule UnitedWeb.ApiController do
 
               _ ->
                 {:ok, res} = File.read(params["books"].path)
+                res = United.remove_null_bytes(params["books"].path)
+
+                IO.inspect(res, label: "null removed")
 
                 {header, contents} =
                   res
@@ -280,7 +285,8 @@ defmodule UnitedWeb.ApiController do
             end
 
           {:ok, bu} = Settings.create_book_upload()
-          Settings.upload_books(data, bu)
+          Settings.upload_books(data, bu, United.Settings.list_organizations |> List.first |> Map.get(:id))
+
 
           # keep a copy of the upload data else modify the uploaded data and write back to csv file for user to modify
           %{status: "ok"}
@@ -597,16 +603,18 @@ defmodule UnitedWeb.ApiController do
           %{status: "ok"}
 
         "get_check_in" ->
-          {:ok, map} = Phoenix.Token.verify(UnitedWeb.Endpoint, "signature", params["token"])
+          
+           case Phoenix.Token.verify(UnitedWeb.Endpoint, "signature", params["token"]) do
+             {:ok, map} ->
+               member = Settings.get_member!(map.id)
+               length = 10
+               code = :crypto.strong_rand_bytes(length) |> Base.encode64() |> binary_part(0, length)
+               # everytime request, keep update the member;
 
-          member = Settings.get_member!(map.id)
+               Settings.update_member(member, %{qrcode: code})
+               code
+           end
 
-          length = 10
-          code = :crypto.strong_rand_bytes(length) |> Base.encode64() |> binary_part(0, length)
-          # everytime request, keep update the member;
-
-          Settings.update_member(member, %{qrcode: code})
-          code
 
         "page_section" ->
           Settings.get_page_section_name(params["section"])
@@ -1057,10 +1065,6 @@ defmodule UnitedWeb.ApiController do
         ""
       end
 
-
-
-PhxSolid.QueryBuilder.build_datatable_query(PhxSolid.Generic.Product, %{"length" => "10", "start" => "0"} , %{  "additional_joins" => [%{"assoc" => "category", "prefix" => "b", "join_suffix" => "a"}], "addtional_search" => [%{"column" => "category_id, "prefix" => "a", "operator" => "", "value" => 2 }],     "preloads" => [:category]})
-
     Logger.info("additional_order_statements -")
     IO.inspect(post_additional_order_statements)
 
@@ -1081,8 +1085,16 @@ PhxSolid.QueryBuilder.build_datatable_query(PhxSolid.Generic.Product, %{"length"
 
             item |> String.contains?("_id^") ->
               item = item |> String.replace("^", "")
+              
               [_prefix, i] = item |> String.split(".")
-              ss = params["search"]["value"]
+              i = i |> String.split("=") |> Enum.at(0)
+              ss = params["search"]["value"] |> IO.inspect(label: "#{item} a.book_category_id^ start with search value")
+              ss = 
+              if  ss == "" do
+                item |> String.split("=") |> Enum.at(1)
+              else
+                ss
+              end
 
               if ss != "" do
                 case Integer.parse(ss) do
@@ -1110,7 +1122,7 @@ PhxSolid.QueryBuilder.build_datatable_query(PhxSolid.Generic.Product, %{"length"
               end
 
             true ->
-              ss = params["search"]["value"] |> IO.inspect()
+              ss = params["search"]["value"] |> IO.inspect(label: "true search value")
               items = String.split(item, "|")
 
               subquery =

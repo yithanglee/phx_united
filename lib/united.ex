@@ -9,6 +9,33 @@ defmodule United do
   # import Mogrify
   use Joken.Config
 
+
+  @doc """
+  Cleans a CSV file by removing NULL bytes (0x00) and writes a safe file.
+
+  Returns the cleaned file contents as a binary (string) and also writes
+  a "<original>_cleaned.csv" copy to disk for inspection.
+  """
+  def remove_null_bytes(input_path) do
+    cleaned_path =
+      input_path <> "_cleaned.csv"
+
+    contents =
+      input_path
+      |> File.read!()
+      |> remove_nulls()
+
+    # Best-effort write of a cleaned copy; ignore failures, since the caller
+    # only cares about the cleaned contents.
+    _ = File.write(cleaned_path, contents)
+
+    contents
+  end
+
+  defp remove_nulls(binary) do
+    :binary.replace(binary, <<0>>, <<>>, [:global])
+  end
+
   def firebase_config() do
     # AIzaSyCShSjvz1ZBrgXrxVOG_X3u19U9coEdiGk
     # %{
@@ -66,12 +93,7 @@ defmodule United do
       end
     end
 
-    members =
-      United.Settings.all_outstanding_loans()
-      |> Enum.map(&(&1 |> BluePotion.sanitize_struct() |> insert_fine.()))
-      |> Enum.reject(&(&1 == nil))
-      |> Enum.filter(&(&1.late_days > -7))
-      |> Enum.group_by(& &1.member)
+    members =      United.Settings.all_outstanding_loans()   |> Enum.reject(& &1.member.email == nil ) |> Enum.filter(& &1.member.email |> String.contains?("@") )    |> Enum.map(&(&1 |> BluePotion.sanitize_struct() |> insert_fine.()))      |> Enum.reject(&(&1 == nil))      |> Enum.filter(&(&1.late_days > -7))      |> Enum.group_by(& &1.member)
 
     for member <- members |> Map.keys() do
       loans = members[member]

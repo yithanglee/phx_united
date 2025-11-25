@@ -43,7 +43,8 @@ defmodule United.Settings do
   end
 
   def get_organization_by_host_name(host_name) do
-    Repo.all(from o in Organization, where: ilike(o.host_name, ^"%#{host_name}%")) |> List.first()
+    Repo.all(from(o in Organization, where: ilike(o.host_name, ^"%#{host_name}%")))
+    |> List.first()
   end
 
   def get_organization_by_id(id) do
@@ -312,7 +313,7 @@ defmodule United.Settings do
   end
 
   def list_recent_blogs() do
-    Repo.all(from b in Blog, limit: 20, order_by: [desc: b.id])
+    Repo.all(from(b in Blog, limit: 20, order_by: [desc: b.id]))
   end
 
   @doc """
@@ -950,9 +951,10 @@ defmodule United.Settings do
 
   def get_facebook_page_by_pat(page_access_token) do
     Repo.all(
-      from p in FacebookPage,
+      from(p in FacebookPage,
         where: p.page_access_token == ^page_access_token,
         preload: [:live_videos]
+      )
     )
   end
 
@@ -1053,7 +1055,7 @@ defmodule United.Settings do
   def get_live_video!(id), do: Repo.get!(LiveVideo, id) |> Repo.preload(:facebook_page)
 
   def get_live_video_by_fb_id(id) do
-    Repo.all(from lv in LiveVideo, where: lv.live_id == ^id) |> List.first()
+    Repo.all(from(lv in LiveVideo, where: lv.live_id == ^id)) |> List.first()
   end
 
   @doc """
@@ -1183,7 +1185,7 @@ defmodule United.Settings do
 
     pv =
       if check == [] do
-        res = Repo.all(from p in VideoComment, where: p.ms_id == ^attrs.ms_id) |> List.first()
+        res = Repo.all(from(p in VideoComment, where: p.ms_id == ^attrs.ms_id)) |> List.first()
 
         f =
           if res == nil do
@@ -1296,7 +1298,7 @@ defmodule United.Settings do
 
     pv =
       if check == [] do
-        res = Repo.all(from p in PageVisitor, where: p.psid == ^psid) |> List.first()
+        res = Repo.all(from(p in PageVisitor, where: p.psid == ^psid)) |> List.first()
 
         if res != nil do
           Agent.update(pid, fn list -> List.insert_at(list, 0, res) end)
@@ -1586,7 +1588,7 @@ defmodule United.Settings do
         img_url = params |> Map.get("book_image.img_url")
 
         if img_url != nil do
-          q = from bi in United.Settings.BookImage, where: bi.book_id == ^book.id
+          q = from(bi in United.Settings.BookImage, where: bi.book_id == ^book.id)
           Repo.delete_all(q)
 
           United.Settings.BookImage.changeset(%United.Settings.BookImage{}, %{
@@ -1599,7 +1601,7 @@ defmodule United.Settings do
         img_url = params |> Map.get("book_image")
 
         if img_url != nil do
-          q = from bi in United.Settings.BookImage, where: bi.book_id == ^book.id
+          q = from(bi in United.Settings.BookImage, where: bi.book_id == ^book.id)
           Repo.delete_all(q)
 
           bi_params = %{
@@ -1738,7 +1740,7 @@ defmodule United.Settings do
   end
 
   def list_members_by_organization_id(organization_id) do
-    Repo.all(from m in Member, where: m.organization_id == ^organization_id)
+    Repo.all(from(m in Member, where: m.organization_id == ^organization_id))
   end
 
   def get_member!(id) do
@@ -1784,8 +1786,8 @@ defmodule United.Settings do
       tcount =
         United.Settings.list_members_by_organization_id(organization_id)
         |> Enum.map(&(&1 |> assign_month_year.()))
-        # |> Enum.filter(&(&1.year == Date.utc_today().year))
-        # |> Enum.filter(&(&1.month == Date.utc_today().month))
+        |> Enum.filter(&(&1.year == Date.utc_today().year))
+        |> Enum.filter(&(&1.month == Date.utc_today().month))
         |> Enum.count()
 
       month = Date.utc_today().month
@@ -2006,7 +2008,7 @@ defmodule United.Settings do
           end)
           |> Multi.run(:author, fn _repo, %{book_inventory: book_inventory} ->
             author =
-              Repo.all(from a in Author, where: a.name == ^params["author"]["name"])
+              Repo.all(from(a in Author, where: a.name == ^params["author"]["name"]))
               |> List.first()
 
             author =
@@ -2022,7 +2024,7 @@ defmodule United.Settings do
           end)
           |> Multi.run(:publisher, fn _repo, %{book_inventory: book_inventory} ->
             publisher =
-              Repo.all(from p in Publisher, where: p.name == ^params["publisher"]["name"])
+              Repo.all(from(p in Publisher, where: p.name == ^params["publisher"]["name"]))
               |> List.first()
 
             publisher =
@@ -2048,13 +2050,15 @@ defmodule United.Settings do
               # United.s3_large_upload(filename)
 
               Repo.delete_all(
-                from i in BookImage,
+                from(i in BookImage,
                   where: i.book_id == ^book_inventory.book.id and is_nil(i.group)
+                )
               )
 
               Repo.delete_all(
-                from i in BookImage,
+                from(i in BookImage,
                   where: i.book_id == ^book_inventory.book.id and i.group == ^"cover"
+                )
               )
 
               Ecto.Changeset.cast(
@@ -2242,13 +2246,15 @@ defmodule United.Settings do
           # |> Repo.update()
           if "book_image" in Map.keys(params) do
             Repo.delete_all(
-              from i in BookImage,
+              from(i in BookImage,
                 where: i.book_id == ^book_inventory.book.id and is_nil(i.group)
+              )
             )
 
             Repo.delete_all(
-              from i in BookImage,
+              from(i in BookImage,
                 where: i.book_id == ^book_inventory.book.id and i.group == ^"cover"
+              )
             )
 
             bi_params = %{
@@ -2271,13 +2277,15 @@ defmodule United.Settings do
 
           if "book_image.img_url" in Map.keys(params) do
             Repo.delete_all(
-              from i in BookImage,
+              from(i in BookImage,
                 where: i.book_id == ^book_inventory.book.id and is_nil(i.group)
+              )
             )
 
             Repo.delete_all(
-              from i in BookImage,
+              from(i in BookImage,
                 where: i.book_id == ^book_inventory.book.id and i.group == ^"cover"
+              )
             )
 
             Ecto.Changeset.cast(
@@ -2309,9 +2317,10 @@ defmodule United.Settings do
           if bi.book != nil do
             bres =
               Repo.all(
-                from b in Book,
+                from(b in Book,
                   where:
                     b.title == ^bi.book.title and b.isbn == ^bi.book.isbn and b.id != ^bi.book.id
+                )
               )
 
             if bres != [] do
@@ -2345,28 +2354,31 @@ defmodule United.Settings do
 
   def book_can_loan(book_inventory_id) do
     Repo.all(
-      from l in Loan,
+      from(l in Loan,
         where:
           l.book_inventory_id == ^book_inventory_id and
             l.has_return == ^false
+      )
     )
   end
 
   def all_outstanding_loans() do
     Repo.all(
-      from l in Loan,
+      from(l in Loan,
         where: l.has_return == ^false,
         preload: [:book, [member: [:group, [organization: :smtp_setting]]]]
+      )
     )
   end
 
   def member_outstanding_loans(member_id) do
     Repo.all(
-      from l in Loan,
+      from(l in Loan,
         where:
           l.member_id == ^member_id and
             l.has_return == ^false,
         preload: [:book, [member: :group]]
+      )
     )
   end
 
@@ -2389,12 +2401,13 @@ defmodule United.Settings do
   def return_book_by_barcode(barcode, organization_id) do
     loan_id =
       Repo.all(
-        from l in Loan,
+        from(l in Loan,
           left_join: bi in BookInventory,
           on: l.book_inventory_id == bi.id,
           where: bi.organization_id == ^organization_id,
           where: bi.code == ^barcode and l.has_return == ^false,
           select: l.id
+        )
       )
       |> List.first()
 
@@ -2407,12 +2420,13 @@ defmodule United.Settings do
 
       next_reserve =
         Repo.all(
-          from r in United.Settings.Reservation,
+          from(r in United.Settings.Reservation,
             where:
               is_nil(r.loan_id) and
                 r.book_inventory_id == ^l.book_inventory_id,
             order_by: [asc: r.id],
             preload: [:member]
+          )
         )
 
       if next_reserve != [] do
@@ -2436,12 +2450,13 @@ defmodule United.Settings do
 
     next_reserve =
       Repo.all(
-        from r in United.Settings.Reservation,
+        from(r in United.Settings.Reservation,
           where:
             is_nil(r.loan_id) and
               r.book_inventory_id == ^l.book_inventory_id,
           order_by: [asc: r.id],
           preload: [:member]
+        )
       )
 
     if next_reserve != [] do
@@ -2461,24 +2476,13 @@ defmodule United.Settings do
           "ISBN" => isbn,
           "PRICE" => price,
           "PUBLISHER" => publisher_name,
-          "SOURCE" => source,
           "TITLE" => title
         } = map_d,
         bu,
         organization_id
       ) do
     unless map_d |> Map.values() |> Enum.uniq() |> List.first() == "" do
-      s = Repo.all(from a in BookSource, where: a.name == ^source) |> List.first()
-
-      source =
-        if s == nil do
-          {:ok, s} = create_book_source(%{name: source})
-          s
-        else
-          s
-        end
-
-      a = Repo.all(from a in Author, where: a.name == ^author_name) |> List.first()
+      a = Repo.all(from(a in Author, where: a.name == ^author_name)) |> List.first()
 
       author =
         if a == nil do
@@ -2488,7 +2492,165 @@ defmodule United.Settings do
           a
         end
 
-      p = Repo.all(from p in Publisher, where: p.name == ^publisher_name) |> List.first()
+      p = Repo.all(from(p in Publisher, where: p.name == ^publisher_name)) |> List.first()
+
+      publisher =
+        if p == nil do
+          case create_publisher(%{name: publisher_name}) do
+            {:ok, p} ->
+              p
+
+            _ ->
+              nil
+          end
+        else
+          p
+        end
+
+      b = Repo.get_by(Book, title: title, isbn: "#{isbn}")
+
+      book =
+        if b == nil do
+          price =
+            case Float.parse(price) do
+              {price, _int} ->
+                price
+
+              _ ->
+                0.0
+            end
+
+          b_cg =
+            Ecto.Changeset.cast(
+              %Book{},
+              %{
+                description: description,
+                isbn: "#{isbn}",
+                call_number: barcode,
+                price: price,
+                title: title,
+                author_id: author.id,
+                publisher_id: if(publisher != nil, do: publisher.id)
+              },
+              [
+                :description,
+                :title,
+                :author_id,
+                :publisher_id,
+                :call_number,
+                :price,
+                :isbn
+              ]
+            )
+            |> Repo.insert()
+            |> IO.inspect()
+
+          case b_cg do
+            {:ok, b} ->
+              res =
+                Ecto.Changeset.cast(
+                  %BookInventory{},
+                  %{
+                    book_id: b.id,
+                    code: barcode,
+                    book_upload_id: bu.id,
+                    organization_id: organization_id
+                  },
+                  [:book_id, :code, :book_upload_id, :organization_id]
+                )
+                |> Repo.insert()
+
+              case res do
+                {:ok, bi} ->
+                  {:ok, "book, inventory successful"}
+
+                {:error, bi_cg} ->
+                  {reason, message} = bi_cg.errors |> hd()
+                  {proper_message, message_list} = message
+                  final_reason = Atom.to_string(reason) <> " " <> proper_message
+                  {:error, "inventory error - #{final_reason}", map_d}
+              end
+              |> IO.inspect(label: "1")
+
+            {:error, b_cg} ->
+              {reason, message} = b_cg.errors |> hd()
+              {proper_message, message_list} = message
+              final_reason = Atom.to_string(reason) <> " " <> proper_message
+              {:error, "book error - #{final_reason}", map_d}
+          end
+        else
+          b
+
+          bi = Repo.get_by(BookInventory, book_id: b.id, code: barcode)
+
+          if bi == nil do
+            res =
+              Ecto.Changeset.cast(
+                %BookInventory{},
+                %{
+                  book_id: b.id,
+                  code: barcode,
+                  book_upload_id: bu.id,
+                  organization_id: organization_id
+                },
+                [:book_id, :code, :book_source_id, :book_upload_id, :organization_id]
+              )
+              |> Repo.insert()
+
+            case res do
+              {:ok, bi} ->
+                {:ok, "book, inventory successful"}
+
+              {:error, bi_cg} ->
+                {reason, message} = bi_cg.errors |> hd()
+                {proper_message, message_list} = message
+                final_reason = Atom.to_string(reason) <> " " <> proper_message
+                {:error, "inventory error  - #{final_reason}", map_d}
+            end
+            |> IO.inspect(label: "2")
+          else
+            {:error, "book inventory already exist", map_d}
+          end
+        end
+    end
+  end
+
+  def setup_book(
+        %{
+          "AUTHOR" => author_name,
+          "BARCODE" => barcode,
+          "DESCRIPTION" => description,
+          "ISBN" => isbn,
+          "PRICE" => price,
+          "PUBLISHER" => publisher_name,
+          "SOURCE" => source,
+          "TITLE" => title
+        } = map_d,
+        bu,
+        organization_id
+      ) do
+    unless map_d |> Map.values() |> Enum.uniq() |> List.first() == "" do
+      s = Repo.all(from(a in BookSource, where: a.name == ^source)) |> List.first()
+
+      source =
+        if s == nil do
+          {:ok, s} = create_book_source(%{name: source})
+          s
+        else
+          s
+        end
+
+      a = Repo.all(from(a in Author, where: a.name == ^author_name)) |> List.first()
+
+      author =
+        if a == nil do
+          {:ok, a} = create_author(%{name: author_name})
+          a
+        else
+          a
+        end
+
+      p = Repo.all(from(p in Publisher, where: p.name == ^publisher_name)) |> List.first()
 
       publisher =
         if p == nil do
@@ -2773,6 +2935,7 @@ defmodule United.Settings do
       end
       |> Enum.reject(&(&1 == nil))
       |> List.flatten()
+      |> IO.inspect(label: "uploads")
 
     success = upload_lines |> Enum.reject(&(&1 |> elem(0) == :error))
 
@@ -2809,15 +2972,15 @@ defmodule United.Settings do
   end
 
   def get_member_by_name(uid) do
-    Repo.all(from m in Member, where: ilike(m.name, ^"%#{uid}%"), preload: [:group], limit: 5)
+    Repo.all(from(m in Member, where: ilike(m.name, ^"%#{uid}%"), preload: [:group], limit: 5))
   end
 
   def get_member_by_uid(uid) do
-    Repo.all(from m in Member, where: m.psid == ^uid, limit: 1) |> List.first()
+    Repo.all(from(m in Member, where: m.psid == ^uid, limit: 1)) |> List.first()
   end
 
   def get_member_by_email(email) do
-    Repo.all(from m in Member, where: m.email == ^email, limit: 1) |> List.first()
+    Repo.all(from(m in Member, where: m.email == ^email, limit: 1)) |> List.first()
   end
 
   def member_token2(id) do
@@ -2873,18 +3036,19 @@ defmodule United.Settings do
 
   def get_intro_books() do
     Repo.all(
-      from bi in BookImage,
+      from(bi in BookImage,
         left_join: b in Book,
         on: b.id == bi.book_id,
         left_join: i in BookInventory,
         on: i.book_id == b.id,
         preload: [:publisher, :author, book: [:author, :publisher]]
+      )
     )
   end
 
   def get_book_by_isbn(isbn) do
     a =
-      Repo.all(from b in Book, where: b.isbn == ^isbn, preload: [:author, :publisher])
+      Repo.all(from(b in Book, where: b.isbn == ^isbn, preload: [:author, :publisher]))
       |> List.first()
 
     if a != nil do
@@ -2917,7 +3081,7 @@ defmodule United.Settings do
       bc_kv = Agent.get(Process.whereis("bc_kv_#{org.id}" |> String.to_atom()), fn map -> map end)
     end
 
-    bcs = Repo.all(from bc in BookCategory, where: not is_nil(bc.organization_id))
+    bcs = Repo.all(from(bc in BookCategory, where: not is_nil(bc.organization_id)))
 
     kv =
       for bci <- bcs do
@@ -3014,25 +3178,27 @@ defmodule United.Settings do
 
   def get_tag_books(params) do
     Repo.all(
-      from bi in BookInventory,
+      from(bi in BookInventory,
         left_join: bt in BookTag,
         on: bt.book_inventory_id == bi.id,
         left_join: t in Tag,
         on: t.id == bt.tag_id,
         where: t.name == ^params["tag"],
         preload: [:book, :book_images, :author, :publisher, :book_category]
+      )
     )
   end
 
   def book_data(params) do
     Repo.all(
-      from bi in BookInventory,
+      from(bi in BookInventory,
         left_join: bt in BookTag,
         on: bt.book_inventory_id == bi.id,
         left_join: t in Tag,
         on: t.id == bt.tag_id,
         where: bi.id == ^params["bi"],
         preload: [:book, :book_images, :author, :publisher, :book_category]
+      )
     )
     |> List.first()
   end
@@ -3110,7 +3276,7 @@ defmodule United.Settings do
   end
 
   def check_in(qrcode) do
-    ms = Repo.all(from m in Member, where: m.qrcode == ^qrcode)
+    ms = Repo.all(from(m in Member, where: m.qrcode == ^qrcode))
     member = List.first(ms)
 
     if member != nil do
@@ -3119,7 +3285,7 @@ defmodule United.Settings do
   end
 
   def check_out(qrcode) do
-    ms = Repo.all(from m in Member, where: m.qrcode == ^qrcode)
+    ms = Repo.all(from(m in Member, where: m.qrcode == ^qrcode))
     member = List.first(ms)
 
     if member != nil do
@@ -3186,12 +3352,13 @@ defmodule United.Settings do
 
       "all_loans" ->
         q =
-          from l in Loan,
+          from(l in Loan,
             where:
               l.inserted_at > ^syear and
                 l.inserted_at < ^eyear,
             select: %{has_return: l.has_return, count: count(l.has_return)},
             group_by: [l.has_return]
+          )
 
         Repo.all(q)
 
@@ -3419,7 +3586,7 @@ defmodule United.Settings do
   end
 
   def get_holiday_by_date(date) do
-    Repo.all(from h in Holiday, where: h.event_date == ^date) |> List.first()
+    Repo.all(from(h in Holiday, where: h.event_date == ^date)) |> List.first()
   end
 
   def create_holiday(params \\ %{}) do
@@ -3447,10 +3614,11 @@ defmodule United.Settings do
   def check_reservation(%{member_id: member_id, book_inventory_id: book_inventory_id} = attrs) do
     check =
       Repo.all(
-        from r in Reservation,
+        from(r in Reservation,
           where:
             is_nil(r.loan_id) and r.member_id == ^member_id and
               r.book_inventory_id == ^book_inventory_id
+        )
       )
 
     check == []
@@ -3470,21 +3638,23 @@ defmodule United.Settings do
 
   def get_member_outstanding_reservations(member) do
     Repo.all(
-      from r in Reservation,
+      from(r in Reservation,
         where: is_nil(r.loan_id) and r.member_id == ^member.id,
         preload: [book_inventory: [:book, :book_category, :book_images]]
+      )
     )
   end
 
   def is_next_reserved_member(member, book_inventory) do
     check =
       Repo.all(
-        from r in Reservation,
+        from(r in Reservation,
           where:
             is_nil(r.loan_id) and
               r.book_inventory_id == ^book_inventory.id,
           order_by: [asc: r.id],
           preload: [:member]
+        )
       )
 
     r = List.first(check)
@@ -3619,9 +3789,10 @@ defmodule United.Settings do
   def send_outstanding_emails(%United.Settings.Organization{} = organization) do
     outstanding_reminders =
       Repo.all(
-        from er in EmailReminder,
+        from(er in EmailReminder,
           where: er.status == ^"pending" and er.is_sent == ^false,
           preload: [:member]
+        )
       )
 
     for outstanding_reminder <- outstanding_reminders do
@@ -3649,10 +3820,11 @@ defmodule United.Settings do
   def fix_book() do
     check =
       Repo.all(
-        from b in Book,
+        from(b in Book,
           full_join: bi in BookInventory,
           on: bi.book_id == b.id,
           select: %{book_id: b.id, book_inventory_id: bi.id}
+        )
       )
 
     create_bi2 = fn map ->
@@ -4001,9 +4173,10 @@ defmodule United.Settings do
     # Get all members for the organization ordered by insertion date
     members =
       Repo.all(
-        from m in Member,
+        from(m in Member,
           where: m.organization_id == ^organization_id,
           order_by: [asc: m.inserted_at]
+        )
       )
 
     # Update each member's code sequentially
