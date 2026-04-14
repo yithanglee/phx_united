@@ -8,7 +8,7 @@ defmodule United.Settings do
 
   def append_bool_key(params, bool_key) do
     if bool_key in Map.keys(params) do
-      params |> Map.put(bool_key, Map.get(params, bool_key) == "on")
+      params |> Map.put(bool_key, Map.get(params, bool_key) in ["on", "true", true])
     else
       params |> Map.put(bool_key, false)
     end
@@ -3745,12 +3745,12 @@ defmodule United.Settings do
     """
 
     query4 = """
-    SELECT 
+    SELECT
       REPLACE(b.title, ',', ';') as title,
       b.isbn,
       b.call_number,
       b.price,
-     
+
       REPLACE(REPLACE(a.name, ',', ';'), '"', '') as author_name,
       p.name as publisher_name,
       o.name as organization_name,
