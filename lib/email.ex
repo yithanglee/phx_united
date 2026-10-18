@@ -57,7 +57,7 @@ defmodule United.Email do
   use Bamboo.Phoenix, view: UnitedWeb.EmailView
 
   @doc """
-  United.Email.custom_email("yithanglee@gmail.com", "test1", "lots of htmls") |> United.Mailer.deliver_now
+   United.Mailer.send_email_for_org(%United.Settings.Organization{id: 1} |> United.Repo.preload(:smtp_setting), United.Email.custom_email("yithanglee@gmail.com", "test1", "lots of htmls",  %United.Settings.Organization{id: 1}))
   """
   def custom_email(user_email, subject, html, %United.Settings.Organization{} = organization) do
     # Build your default email then customize for welcome
@@ -68,6 +68,8 @@ defmodule United.Email do
     |> render("custom_email.html", html: html)
   end
 
+  @doc """
+  """
   def remind_email(user_email, member, books, %United.Settings.Organization{} = organization) do
     # Build your default email then customize for welcome
     base_email(organization)
@@ -106,14 +108,10 @@ defmodule United.Email do
       end
 
     new_email()
-
-    # |> from("no-reply@#{default_host}")
-    |> from("kajang_cmc@damienslab.com")
-
+    |> from("pioneer_cmc@damienslab.com")
     |> put_html_layout({UnitedWeb.LayoutView, "email.html"})
 
     # Set default text layout
     # |> put_text_layout({UnitedWeb.LayoutView, "email.text"})
   end
 end
-
